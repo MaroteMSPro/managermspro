@@ -637,8 +637,9 @@ function handleSaveWikiKb(): void
 function callClaudeAPI(string $systemPrompt, array $messages): array
 {
     // ⭐⭐ CONFIGURACIÓN OLLAMA - NO CLAUDE ⭐⭐
-    $url = 'http://[::1]:11434/api/chat';
-    $model = 'qwen3:8b';
+    $aiConfig = getAIConfig();
+    $url = $aiConfig['url'] . '/api/chat';
+    $model = $aiConfig['default_model'];
     
     // Construir payload
     $messages_for_api = [
@@ -656,8 +657,8 @@ function callClaudeAPI(string $systemPrompt, array $messages): array
         'messages' => $messages_for_api,
         'stream' => false,
         'options' => [
-            'temperature' => 0.7,
-            'num_predict' => 2500
+            'temperature' => $aiConfig['temperature'] ?? 0.7,
+            'num_predict' => $aiConfig['max_tokens'] ?? 2500
         ]
     ]);
 
@@ -667,7 +668,7 @@ function callClaudeAPI(string $systemPrompt, array $messages): array
         CURLOPT_POSTFIELDS => $payload,
         CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 300,  // 5 minutos para Ollama
+        CURLOPT_TIMEOUT => $aiConfig['timeout'] ?? 300,  // Usar timeout de config
         CURLOPT_CONNECTTIMEOUT => 30  // 30s para conectar
     ]);
 

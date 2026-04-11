@@ -1,16 +1,16 @@
 <?php
 /**
  * Application Configuration - MSPro Config AI
- * CONFIGURACIÓN OLLAMA
+ * CONFIGURACI锟�0锟�7N OLLAMA
  */
 define('APP_CONFIG', [
-    // Configuración AI (Ollama)
+    // Configuraci锟斤拷n AI (Ollama)
     'ai_api' => [
         'type' => 'ollama',
-        'url' => 'http://[::1]:11434',
+        'url' => 'http://148.230.77.214:11434',
         'default_model' => 'qwen3:8b',
         'available_models' => [
-            'qwen3:8b' => 'Qwen 3 8B (Recomendado - Rápido)',
+            'qwen3:8b' => 'Qwen 3 8B (Recomendado - R锟斤拷pido)',
             'qwen3.5:27b' => 'Qwen 3.5 27B (Lento - Mejor calidad)',
         ],
         'timeout' => 120,
@@ -26,7 +26,7 @@ define('APP_CONFIG', [
 ]);
 
 /**
- * Obtener configuración de AI
+ * Obtener configuraci锟斤拷n de AI
  */
 function getAIConfig(string $key = null) {
     $config = APP_CONFIG['ai_api'];
