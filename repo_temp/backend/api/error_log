@@ -1,0 +1,3 @@
+[09-Apr-2026 21:25:19 America/New_York] PHP Fatal error:  Cannot redeclare handleParse() (previously declared in /home/wvjmxock/manager.muserverpro.com/backend/api/index.php:99) in /home/wvjmxock/manager.muserverpro.com/backend/config/app.php on line 191
+[09-Apr-2026 21:29:40 America/New_York] PHP Parse error:  Unclosed '{' on line 532 in /home/wvjmxock/manager.muserverpro.com/backend/config/app.php on line 533
+[09-Apr-2026 21:36:33 America/New_York] PHP Fatal error:  Cannot redeclare handleParse() (previously declared in /home/wvjmxock/manager.muserverpro.com/backend/api/index.php:99) in /home/wvjmxock/manager.muserverpro.com/backend/config/app.php on line 123

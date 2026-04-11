@@ -1,0 +1,19 @@
+RewriteEngine On
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# API routes
+RewriteRule ^api/(.*)$ backend/api/index.php [QSA,L]
+
+# Root URL → frontend
+RewriteRule ^$ frontend/index.html [L]
+
+# If file exists, serve it
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Everything else → frontend (SPA)
+RewriteRule ^(.+)$ frontend/index.html [L]

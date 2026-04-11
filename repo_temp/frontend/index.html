@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSPro Config AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark:#0a0b0f;--bg-card:#111218;--bg-hover:#181a24;--bg-input:#1a1c28;--bg-surface:#14151d;
+            --border:#252736;--border-hover:#363850;--text-1:#e8e9ed;--text-2:#8b8fa3;--text-3:#5c5f73;
+            --accent:#f97316;--accent-h:#fb923c;--accent-dim:#c2410c;--accent-glow:rgba(249,115,22,.12);
+            --success:#10b981;--danger:#ef4444;--warn:#eab308;--info:#3b82f6;--purple:#a855f7;--cyan:#06b6d4;
+            --sidebar-w:256px;--panel-w:350px;--r:10px;--rs:6px;--rl:14px;
+            --shadow:0 8px 32px rgba(0,0,0,.5);--tr:all .2s ease;
+            --mono:'JetBrains Mono',monospace;--sans:'Inter',-apple-system,sans-serif;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:var(--sans);background:var(--bg-dark);color:var(--text-1);min-height:100vh;overflow:hidden}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+        .login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;
+            background:radial-gradient(ellipse at 30% 20%,rgba(249,115,22,.06) 0%,transparent 50%),var(--bg-dark)}
+        .login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);padding:48px 40px;
+            width:100%;max-width:420px;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden}
+        .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+            background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+        .brand{margin-bottom:28px}
+        .brand-name{font-family:var(--mono);font-size:30px;font-weight:800;letter-spacing:-1px}
+        .brand-name .ms{color:var(--accent)}.brand-name .pro{color:var(--text-1)}
+        .brand-tag{font-family:var(--mono);font-size:11px;color:var(--accent-dim);letter-spacing:3px;text-transform:uppercase;margin-top:4px}
+        .brand-sub{color:var(--text-3);font-size:13px;margin-top:10px}
+
+        .fg{margin-bottom:16px;text-align:left}
+        .fl{display:block;font-size:11px;font-weight:600;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px}
+        .input{width:100%;padding:11px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--rs);
+            color:var(--text-1);font-size:14px;font-family:var(--mono);transition:var(--tr);outline:none}
+        .input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+        .input::placeholder{color:var(--text-3);font-family:var(--sans)}
+        textarea.input{resize:none;font-family:var(--sans)}
+
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border:none;
+            border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;transition:var(--tr);font-family:var(--sans);white-space:nowrap}
+        .btn:active{transform:scale(.97)}
+        .btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:var(--accent-h)}.btn-p:disabled{opacity:.4;cursor:not-allowed}
+        .btn-p.full{width:100%}
+        .btn-o{background:transparent;border:1px solid var(--border);color:var(--text-1)}.btn-o:hover{border-color:var(--accent);color:var(--accent)}
+        .btn-g{background:transparent;color:var(--text-2);padding:8px 12px}.btn-g:hover{color:var(--accent);background:var(--accent-glow)}
+        .btn-sm{padding:7px 14px;font-size:12px}.btn-xs{padding:4px 10px;font-size:11px}
+        .btn-ok{background:var(--success);color:#fff}.btn-ok:hover{background:#059669}
+        .btn-d{background:var(--danger);color:#fff}
+        .err-text{color:var(--danger);font-size:13px;margin-top:12px;text-align:center}
+        .lnk{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:13px;margin-top:18px}.lnk:hover{color:var(--accent)}
+
+        .app{display:flex;height:100vh;overflow:hidden}
+
+        .sb{width:var(--sidebar-w);background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:10}
+        .sb-brand{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+        .sb-logo{font-family:var(--mono);font-size:18px;font-weight:800}
+        .sb-logo .ms{color:var(--accent)}.sb-logo .pro{color:var(--text-1)}
+        .sb-tag{font-size:9px;color:var(--accent-dim);letter-spacing:1.5px;text-transform:uppercase;font-family:var(--mono);font-weight:600}
+        .sb-body{flex:1;overflow-y:auto;padding:6px 8px}
+        .sb-sec{padding:14px 8px 5px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1.2px}
+        .sb-i{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rs);color:var(--text-2);
+            cursor:pointer;transition:var(--tr);font-size:13px;font-weight:500;user-select:none;position:relative}
+        .sb-i:hover{background:var(--bg-hover);color:var(--text-1)}
+        .sb-i.on{background:var(--accent-glow);color:var(--accent)}
+        .sb-i.on::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--accent);border-radius:0 2px 2px 0}
+        .sb-i .ic{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+        .sb-i .lb{flex:1}
+        .sb-i .bd{font-size:10px;padding:2px 6px;border-radius:100px;background:var(--accent-glow);color:var(--accent);font-weight:700;font-family:var(--mono)}
+        .sb-i.off{opacity:.35;cursor:not-allowed}.sb-i.off:hover{background:transparent;color:var(--text-2)}
+        .sb-i .soon{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--border);color:var(--text-3);font-weight:600}
+        .sb-foot{padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+        .av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dim));
+            display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+        .un{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .ur{font-size:11px;color:var(--text-3)}
+
+        .ws{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+        .ws-h{padding:13px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);flex-shrink:0}
+        .ws-h h2{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+        .ws-b{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+        .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg-card);flex-shrink:0}
+        .tab{padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:var(--tr);color:var(--text-3)}
+        .tab:hover{color:var(--text-1)}.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+        .upl-wrap{flex:1;overflow-y:auto;padding:28px;display:flex;justify-content:center}
+        .upl-box{width:100%;max-width:640px}
+        .dz{border:2px dashed var(--border);border-radius:var(--rl);padding:52px 32px;text-align:center;transition:var(--tr);cursor:pointer;background:var(--bg-surface)}
+        .dz:hover,.dz.on{border-color:var(--accent);background:var(--accent-glow)}
+        .dz .di{font-size:42px;margin-bottom:12px}.dz h3{font-size:16px;margin-bottom:5px;font-weight:700}
+        .dz p{color:var(--text-2);font-size:13px}.dz .dh{margin-top:14px;font-size:12px;color:var(--text-3);font-family:var(--mono)}
+        .upl-alt{display:flex;gap:10px;justify-content:center;margin-top:16px}
+        .fc{display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);margin-top:16px}
+        .fc .fi{font-size:28px}.fc .fn{font-weight:600;font-size:14px}.fc .fs{font-size:12px;color:var(--text-3)}
+
+        .ch-wrap{flex:1;display:flex;overflow:hidden}
+        .ch-main{flex:1;display:flex;flex-direction:column;min-width:0}
+        .ch-msgs{flex:1;overflow-y:auto;padding:20px 24px}
+        .msg{display:flex;gap:12px;margin-bottom:20px;animation:mi .3s ease}
+        @keyframes mi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        .ma{width:28px;height:28px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+        .ma.ai{background:linear-gradient(135deg,var(--accent),#c2410c)}.ma.user{background:var(--info)}
+        .mb{flex:1;min-width:0}
+        .mh{font-size:12px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+        .mh .mt{color:var(--text-3);font-weight:400;font-size:11px}
+        .mx{font-size:14px;line-height:1.6;color:var(--text-2)}
+        .mx strong{color:var(--text-1);font-weight:600}
+        .mx code{background:var(--bg-input);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:12px;color:var(--accent)}
+        .m-acts{display:flex;gap:8px;margin-top:10px}
+        .tp{display:flex;gap:4px;padding:6px 0}
+        .tp span{width:5px;height:5px;background:var(--text-3);border-radius:50%;animation:bl 1.4s infinite}
+        .tp span:nth-child(2){animation-delay:.2s}.tp span:nth-child(3){animation-delay:.4s}
+        @keyframes bl{0%,60%,100%{transform:translateY(0);opacity:.25}30%{transform:translateY(-7px);opacity:1}}
+
+        .ch-bar{padding:12px 22px 18px;border-top:1px solid var(--border);background:var(--bg-card);flex-shrink:0}
+        .ch-warn{text-align:center;padding:5px;font-size:12px;color:var(--warn);margin-bottom:6px}
+        .ch-warn a{color:var(--accent);cursor:pointer;text-decoration:none}
+        .ch-row{display:flex;gap:10px;align-items:flex-end}
+        .ch-ta{flex:1;padding:11px 15px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r);
+            color:var(--text-1);font-size:14px;font-family:var(--sans);resize:none;outline:none;min-height:42px;max-height:100px;transition:var(--tr)}
+        .ch-ta:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+        .ch-send{width:42px;height:42px;border-radius:var(--r);background:var(--accent);border:none;color:#fff;font-size:17px;
+            cursor:pointer;transition:var(--tr);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .ch-send:hover{background:var(--accent-h)}.ch-send:disabled{opacity:.3;cursor:not-allowed}
+
+        .welcome{text-align:center;padding:44px 20px}
+        .welcome .wi{font-size:52px;margin-bottom:14px}.welcome h3{font-size:19px;margin-bottom:8px;font-weight:700}
+        .welcome p{color:var(--text-2);max-width:440px;margin:0 auto 22px;line-height:1.6;font-size:14px}
+        .qg{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+        .qc{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;text-align:left;
+            cursor:pointer;transition:var(--tr);width:180px}
+        .qc:hover{border-color:var(--accent);transform:translateY(-2px)}
+        .qc .qi{font-size:20px;margin-bottom:7px}.qc h4{font-size:12px;margin-bottom:2px;font-weight:600}
+        .qc p{font-size:11px;color:var(--text-3)}
+
+        .rp{width:var(--panel-w);border-left:1px solid var(--border);background:var(--bg-card);display:flex;flex-direction:column;flex-shrink:0}
+        .rp-h{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .rp-h h3{font-size:13px;font-weight:700}
+        .rp-b{flex:1;overflow-y:auto;padding:12px}
+
+        .cc{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px;overflow:hidden}
+        .cc-h{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:var(--tr);font-size:12px;font-weight:600}
+        .cc-h:hover{background:var(--bg-hover)}
+        .cc-b{padding:8px 12px;border-top:1px solid var(--border);font-size:11px}
+        .cr{display:flex;justify-content:space-between;padding:3px 0}.cr .k{color:var(--text-3)}.cr .v{font-family:var(--mono);font-size:10px;color:var(--text-1)}
+
+        .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:10px;font-weight:700}
+        .b-o{background:rgba(249,115,22,.15);color:var(--accent)}.b-g{background:rgba(16,185,129,.15);color:var(--success)}
+        .b-b{background:rgba(59,130,246,.15);color:var(--info)}.b-p{background:rgba(168,85,247,.15);color:var(--purple)}
+        .b-r{background:rgba(239,68,68,.15);color:var(--danger)}.b-c{background:rgba(6,182,212,.15);color:var(--cyan)}
+        .b-y{background:var(--border);color:var(--text-3)}
+
+        .adm{flex:1;overflow-y:auto;padding:24px}
+        .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px}
+        .sc{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+        .sl{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+        .sv{font-size:26px;font-weight:800;font-family:var(--mono)}
+        .sv.co{color:var(--accent)}.sv.cg{color:var(--success)}.sv.cb{color:var(--info)}.sv.cp{color:var(--purple)}
+
+        .cb{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+        .cb-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .cb-h h3{font-size:14px;font-weight:700}
+        .tbl{width:100%;border-collapse:collapse}
+        .tbl th{text-align:left;padding:9px 14px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+        .tbl td{padding:9px 14px;font-size:13px;border-bottom:1px solid var(--border)}
+        .tbl tr:hover td{background:var(--bg-hover)}
+        .tk{font-family:var(--mono);font-size:11px;background:var(--bg-input);padding:3px 7px;border-radius:4px;color:var(--accent);cursor:pointer}
+
+        .rc{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px}
+        .rc .rt{flex:1;font-size:13px}
+
+        .emp{text-align:center;padding:36px 20px;color:var(--text-3);font-size:13px}
+        .emp .ei{font-size:34px;margin-bottom:10px}
+
+        .mo-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+        .mo{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);padding:28px;width:100%;max-width:440px;box-shadow:var(--shadow)}
+        .mo h3{font-size:17px;margin-bottom:20px}
+        .mo-f{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+        .rp-flash{animation:rpflash .5s ease 3}
+.preview-code{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.preview-code::-webkit-scrollbar{width:6px;height:6px}.preview-code::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.guide-wrap code{background:var(--bg-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--accent)}
+@keyframes rpflash{0%,100%{border-color:var(--border)}50%{border-color:var(--accent);box-shadow:0 0 15px rgba(249,115,22,.3)}}
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:var(--r);font-size:13px;font-weight:500;z-index:200;
+            animation:ti .3s ease;box-shadow:var(--shadow)}
+        .toast.ok{background:var(--success);color:#fff}.toast.err{background:var(--danger);color:#fff}
+        @keyframes ti{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+        @media(max-width:1024px){.rp{display:none}}
+        @media(max-width:768px){.sb{display:none}}
+        .calc-field{display:flex;flex-direction:column;gap:3px}
+        .calc-field label{font-size:10px;color:var(--text-3);font-weight:600;text-transform:uppercase}
+        .calc-field input{background:var(--bg-1);border:1px solid var(--border);border-radius:4px;color:var(--text-1);padding:5px 8px;font-size:13px;text-align:center;width:100%}
+        .cth{padding:8px 10px;text-align:left;font-size:10px;color:var(--text-3);font-weight:600;text-transform:uppercase}
+        .ctd{padding:6px 10px}
+        .calc-preset{background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--text-2);cursor:pointer}
+        .calc-preset:hover{border-color:var(--accent);color:var(--accent)}
+        .tog{width:36px;height:20px;border-radius:10px;background:var(--bg-1);border:1px solid var(--border);cursor:pointer;position:relative;transition:.2s}
+        .tog.on{background:var(--accent);border-color:var(--accent)}
+        .tog-k{width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:1px;left:1px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+        .tog.on .tog-k{left:17px}
+    </style>
+</head>
+<body>
+<div id="app">
+    <div v-if="!auth.ok" class="login-page"><div class="login-card">
+        <div class="brand"><div class="brand-name"><span class="ms">MS</span><span class="pro">Pro</span></div>
+        <div class="brand-tag">Config AI</div><div class="brand-sub">{{auth.mode==='admin'?'Panel de Administración':'Configuración Inteligente de Archivos'}}</div></div>
+        <template v-if="auth.mode==='token'">
+            <div class="fg"><label class="fl">Contraseña</label><input class="input" type="password" v-model="auth.token" placeholder="Ingresá la contraseña..." @keyup.enter="loginToken"></div>
+            <button class="btn btn-p full" @click="loginToken" :disabled="!auth.token||auth.loading">{{auth.loading?'⏳ ...':'→ Ingresar'}}</button>
+            <div v-if="auth.error" class="err-text">{{auth.error}}</div>
+            <button class="lnk" @click="auth.mode='admin'">🔒 Acceso Admin</button>
+        </template>
+        <template v-else>
+            <div class="fg"><label class="fl">Usuario</label><input class="input" v-model="auth.user" placeholder="admin" @keyup.enter="loginAdmin"></div>
+            <div class="fg"><label class="fl">Contraseña</label><input class="input" type="password" v-model="auth.pass" placeholder="••••••••" @keyup.enter="loginAdmin"></div>
+            <button class="btn btn-p full" @click="loginAdmin" :disabled="!auth.user||!auth.pass||auth.loading">{{auth.loading?'⏳':'🔒 Ingresar'}}</button>
+            <div v-if="auth.error" class="err-text">{{auth.error}}</div>
+            <button class="lnk" @click="auth.mode='token'">← Volver</button>
+        </template>
+    </div></div>
+
+    <div v-else class="app"><aside class="sb">
+        <div class="sb-brand"><div><div class="sb-logo"><span class="ms">MS</span><span class="pro">Pro</span></div><div class="sb-tag">Config AI</div></div></div>
+        <div class="sb-body">
+            <template v-if="auth.role==='admin'">
+                <div class="sb-sec">Administración</div>
+                <div class="sb-i" :class="{on:nav.v==='ad'}" @click="nav.v='ad'"><span class="ic">📊</span><span class="lb">Dashboard</span></div>
+                <div class="sb-i" :class="{on:nav.v==='at'}" @click="nav.v='at'"><span class="ic">🔑</span><span class="lb">Tokens</span><span class="bd">{{tokens.length}}</span></div>
+                <div class="sb-i" :class="{on:nav.v==='ar'}" @click="nav.v='ar'"><span class="ic">⚙️</span><span class="lb">Reglas IA</span></div>
+                <div class="sb-i" :class="{on:nav.v==='aw'}" @click="nav.v='aw';loadWikiStats()"><span class="ic">📚</span><span class="lb">Wiki KB</span></div>
+            </template>
+            <div class="sb-sec">Módulos</div>
+            <div v-for="m in modules" :key="m.id" class="sb-i" :class="{on:nav.v==='mod'&&nav.mod===m.id,off:!m.enabled}" @click="m.enabled&&selMod(m.id)">
+                <span class="ic">{{m.icon}}</span><span class="lb">{{m.name}}</span>
+                <span v-if="!m.enabled" class="soon">SOON</span>
+                <span v-else-if="ms[m.id]?.parsed" class="bd">✓</span>
+            </div>
+        </div>
+        <div class="sb-foot">
+            <div class="av">{{(auth.label||'U')[0].toUpperCase()}}</div>
+            <div style="flex:1;min-width:0"><div class="un">{{auth.label}}</div><div class="ur">{{auth.role==='admin'?'Admin':auth.section}}</div></div>
+            <button class="btn btn-g" @click="logout" style="padding:5px;font-size:15px">🚪</button>
+        </div>
+    </aside>
+
+    <div class="ws">
+        <div class="ws-h"><h2>{{hTitle}} <span v-if="aMod" class="badge" :class="'b-'+aMod.color[0]" style="font-size:10px;margin-left:6px">{{aMod.tag}}</span></h2>
+            <div style="display:flex;gap:8px"><button v-if="curMs?.parsed&&nav.sub==='chat'" class="btn btn-sm btn-ok" @click="dl">⬇️ Descargar .txt</button></div>
+        </div>
+        <div class="ws-b">
+
+        <template v-if="nav.v==='mod'">
+            <div class="tabs">
+                <div v-if="aMod?.type!=='party'&&aMod?.type!=='wiki'" class="tab" :class="{on:nav.sub==='upload'}" @click="nav.sub='upload'">📤 Subir Archivo</div>
+                <div v-if="aMod?.type==='party'" class="tab" :class="{on:nav.sub==='config'}" @click="nav.sub='config'">⚙️ Configuración</div>
+                <div class="tab" :class="{on:nav.sub==='chat'}" @click="nav.sub='chat'">💬 Chat IA</div>
+                <div v-if="aMod?.type!=='party'&&aMod?.type!=='wiki'" class="tab" :class="{on:nav.sub==='guide'}" @click="nav.sub='guide'">📖 Guía</div>
+                <div v-if="aMod?.type!=='party'&&aMod?.type!=='wiki'" class="tab" :class="{on:nav.sub==='preview'}" @click="nav.sub='preview';genPreview()" v-show="curMs?.parsed">👁️ Preview</div>
+                <div v-if="aMod?.type==='party'" class="tab" :class="{on:nav.sub==='calc'}" @click="nav.sub='calc'">🧮 Calculadora</div>
+            </div>
+
+            <div v-if="nav.sub==='upload'" class="upl-wrap"><div class="upl-box">
+                <div class="dz" :class="{on:drag}" @dragover.prevent="drag=true" @dragleave="drag=false" @drop.prevent="onDrop" @click="$refs.fi.click()">
+                    <div class="di">{{aMod?.icon||'📁'}}</div><h3>Subí tu {{aMod?.filename||'archivo.txt'}}</h3>
+                    <p>Arrastrá el archivo o click para seleccionar</p><div class="dh">{{aMod?.filename||'*.txt'}}</div>
+                    <input type="file" ref="fi" accept=".txt" style="display:none" @change="onFile">
+                </div>
+                <div class="upl-alt"><button class="btn btn-o btn-sm" @click="blank">✨ Crear desde cero</button></div>
+                <div v-if="curMs?.file" class="fc">
+                    <div class="fi">📄</div><div style="flex:1"><div class="fn">{{curMs.file.name}}</div><div class="fs">{{(curMs.file.size/1024).toFixed(1)}} KB</div></div>
+                    <button class="btn btn-sm btn-p" @click="parse" :disabled="auth.loading">{{auth.loading?'⏳':'🤖 Analizar'}}</button>
+                </div>
+                <div v-if="curMs?.parsed" style="margin-top:22px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                        <h3 style="font-size:15px;font-weight:700">📋 Config Detectada</h3>
+                        <button class="btn btn-sm btn-p" @click="nav.sub='chat'">💬 Chat IA →</button>
+                    </div>
+                    <div v-for="r in curMs.summary.resets" :key="r.index" class="cc">
+                        <div class="cc-h" @click="r._o=!r._o"><div style="display:flex;align-items:center;gap:7px">
+                            <span class="badge" :class="r.type==='Reset'?'b-o':'b-p'">{{r.type}}</span>{{r.title}}</div>
+                            <span style="font-size:10px">{{r._o?'▾':'▸'}}</span></div>
+                        <div v-if="r._o" class="cc-b">
+                            <div class="cr"><span class="k">Account Level</span><span class="v">{{r.accountLevel}}</span></div>
+                            <div class="cr"><span class="k">Level Req</span><span class="v">{{r.requiredLevel}}</span></div>
+                            <div class="cr"><span class="k">Zen</span><span class="v">{{r.costs.zen.value}} ({{r.costs.zen.type}})</span></div>
+                            <div v-if="r.itemReq" class="cr"><span class="k">Item</span><span class="v">{{r.itemReq.type}} #{{r.itemReq.index}} ×{{r.itemReq.count}}</span></div>
+                            <div v-if="r.rewards" class="cr"><span class="k">Reward</span><span class="v">{{r.rewards.levelUpPoints}} ({{r.rewards.pointsType}})</span></div>
+                            <div v-if="r.settings" style="margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
+                                <div style="font-size:9px;font-weight:700;color:var(--text-3);margin-bottom:3px">SETTINGS</div>
+                                <div class="cr" v-for="(val,key) in r.settings" :key="key"><span class="k">{{key}}</span>
+                                <span class="v" :style="{color:val===true?'var(--success)':val===false?'var(--text-3)':''}">{{val===true?'✓':val===false?'✗':val}}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div></div>
+
+            <!-- CONFIG TAB (Party Module) -->
+            <div v-if="nav.sub==='config'" style="padding:20px;overflow-y:auto;max-height:calc(100vh - 140px)">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                    <div style="font-size:28px">⚙️</div>
+                    <div><h2 style="font-size:17px;font-weight:700;color:var(--text-1);margin:0">Configuración de Common.dat</h2>
+                    <p style="color:var(--text-3);font-size:11px;margin:0">Ingresá los valores de tu servidor para ver la simulación en vivo</p></div>
+                </div>
+
+                <!-- Experience Settings -->
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+                    <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px">📊 Experience Settings</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+                        <div class="calc-field"><label>CharacterMaxLevel</label><input type="number" v-model.number="calc.maxLevel"></div>
+                        <div style="display:flex;align-items:center;gap:8px;padding-top:16px">
+                            <div class="tog" :class="{on:calc.formula1000}" @click="calc.formula1000=calc.formula1000?0:1"><div class="tog-k"></div></div>
+                            <span style="font-size:11px;color:var(--text-2)">Formula Lvl 1000</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:#34d399;margin-bottom:6px">AddExperienceRate</div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+                                <div v-for="i in 4" :key="'er'+i" class="calc-field"><label>AL{{i-1}}</label><input type="number" v-model.number="calc.expRate[i-1]"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:#a78bfa;margin-bottom:6px">AddMasterExperienceRate</div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+                                <div v-for="i in 4" :key="'mr'+i" class="calc-field"><label>AL{{i-1}}</label><input type="number" v-model.number="calc.masterExpRate[i-1]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Party Settings -->
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+                    <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px">🎉 Party Experience</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:6px">⚔️ General</div>
+                            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">
+                                <div v-for="i in 10" :key="'pg'+i" style="text-align:center">
+                                    <div style="font-size:8px;color:var(--text-3)">{{i}}p</div>
+                                    <input type="number" :value="curMs?.partyConfig?.general?.[i-1]||100" @change="curMs.partyConfig.general[i-1]=+$event.target.value" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:#f59e0b;font-weight:700;font-size:11px;width:100%;text-align:center;padding:3px">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:#a78bfa;margin-bottom:6px">⭐ Special</div>
+                            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">
+                                <div v-for="i in 10" :key="'ps'+i" style="text-align:center">
+                                    <div style="font-size:8px;color:var(--text-3)">{{i}}p</div>
+                                    <input type="number" :value="curMs?.partyConfig?.special?.[i-1]||100" @change="curMs.partyConfig.special[i-1]=+$event.target.value" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:#a78bfa;font-weight:700;font-size:11px;width:100%;text-align:center;padding:3px">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:6px;font-size:9px;color:var(--text-3)">💡 Special Party: DW+DK+ELF, MG+DL+SU, o DL+SU+RF. Valor 1p siempre = 100 (base)</div>
+                </div>
+
+                <!-- SIMULATION -->
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                        <div style="font-size:12px;font-weight:700;color:var(--accent)">🎯 Simulación en Vivo</div>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <div class="calc-field" style="flex-direction:row;align-items:center;gap:4px"><label style="white-space:nowrap">Mob Lvl</label><input type="number" v-model.number="calc.simMob" style="width:55px"></div>
+                            <div class="calc-field" style="flex-direction:row;align-items:center;gap:4px"><label style="white-space:nowrap">Char Lvl</label><input type="number" v-model.number="calc.simCharLvl" style="width:55px"></div>
+                        </div>
+                    </div>
+
+                    <div v-if="simTable" style="margin-bottom:10px;display:flex;gap:10px">
+                        <div style="background:var(--bg-1);border-radius:6px;padding:8px 14px;border-left:3px solid #34d399">
+                            <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">EXP Solo (1 jugador)</div>
+                            <div style="font-size:20px;font-weight:800;color:#34d399;font-family:monospace">{{simTable.solo?.toLocaleString()}}</div>
+                        </div>
+                    </div>
+
+                    <div v-if="simTable?.rows" style="overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse;font-size:11px;min-width:600px">
+                            <thead><tr style="background:var(--bg-1)">
+                                <th class="cth">Jugadores</th>
+                                <th class="cth" style="text-align:center;color:#f59e0b">General %</th>
+                                <th class="cth" style="text-align:right;color:#f59e0b">General / Player</th>
+                                <th class="cth" style="text-align:right;color:#f59e0b">General Total</th>
+                                <th class="cth" style="text-align:center;color:#a78bfa">Special %</th>
+                                <th class="cth" style="text-align:right;color:#a78bfa">Special / Player</th>
+                                <th class="cth" style="text-align:right;color:#a78bfa">Special Total</th>
+                                <th class="cth" style="text-align:right">vs Solo</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr v-for="r in simTable.rows" :key="r.n" :style="{borderBottom:'1px solid var(--border)',background:r.n<=calc.simPlayers?'rgba(249,115,22,.05)':'transparent'}">
+                                    <td class="ctd"><span style="font-weight:700">{{r.n}}</span></td>
+                                    <td class="ctd" style="text-align:center;color:#f59e0b;font-weight:600">{{r.gPct}}%</td>
+                                    <td class="ctd" style="text-align:right;font-family:monospace;color:#34d399;font-weight:700">{{r.gPerPlayer.toLocaleString()}}</td>
+                                    <td class="ctd" style="text-align:right;font-family:monospace;color:var(--text-2)">{{r.gTotal.toLocaleString()}}</td>
+                                    <td class="ctd" style="text-align:center;color:#a78bfa;font-weight:600">{{r.sPct}}%</td>
+                                    <td class="ctd" style="text-align:right;font-family:monospace;color:#34d399;font-weight:700">{{r.sPerPlayer.toLocaleString()}}</td>
+                                    <td class="ctd" style="text-align:right;font-family:monospace;color:var(--text-2)">{{r.sTotal.toLocaleString()}}</td>
+                                    <td class="ctd" style="text-align:right;font-size:10px" :style="{color:+r.gVsSolo>0?'#34d399':+r.gVsSolo<0?'#ef4444':'var(--text-3)'}">
+                                        {{r.n===1?'base':((+r.gVsSolo>0?'+':'')+r.gVsSolo+'%')}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:8px;font-size:10px;color:var(--text-3);line-height:1.5">
+                        Simulación con {{calc.simPlayers}} jugadores del mismo nivel ({{calc.simCharLvl}}) matando un mob nivel {{calc.simMob}} con ExpRate {{calc.expRate[0]}}.<br>
+                        <strong>General/Player</strong> = lo que recibe CADA jugador. <strong>General Total</strong> = suma de todos. <strong>vs Solo</strong> = comparado con jugar solo.
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-sm btn-o" @click="dl">⬇️ Descargar Common.dat (Party Section)</button>
+                </div>
+            </div>
+
+            <div v-if="nav.sub==='chat'" class="ch-wrap">
+                <div class="ch-main">
+                    <div class="ch-msgs" ref="chatBox">
+                        <div v-if="curMsgs.length===0" class="welcome"><div class="wi">{{aMod?.icon||'🤖'}}</div>
+                            <h3>{{aMod?.chatWelcome||'¿En qué puedo ayudarte?'}}</h3>
+                            <p>{{aMod?.chatDesc||'Subí tu archivo o pedime que cree una config desde cero.'}}</p>
+                            <div class="qg"><div v-for="qa in (aMod?.quickActions||[])" :key="qa.label" class="qc" @click="send(qa.prompt)">
+                                <div class="qi">{{qa.icon}}</div><h4>{{qa.label}}</h4><p>{{qa.desc}}</p></div></div>
+                        </div>
+                        <div v-for="(m,i) in curMsgs" :key="i" class="msg"><div class="ma" :class="m.role">{{m.role==='ai'?'🤖':'👤'}}</div>
+                            <div class="mb"><div class="mh">{{m.role==='ai'?'MSPro AI':auth.label}}<span class="mt">{{m.time}}</span></div>
+                            <div class="mx" v-html="fmt(m.text)"></div>
+                            <div v-if="m.hasUpdate" class="m-acts">
+                                <button class="btn btn-xs btn-ok" @click="changeLog.unshift({time:now(),desc:'Cambios aplicados',id:Date.now()});notify('✅ Cambios registrados')">✅ Aplicado</button>
+                                <button v-if="aMod?.type==='party'" class="btn btn-xs btn-o" @click="nav.sub='config'" style="margin-left:4px">⚙️ Ver en Configuración</button>
+                            </div></div>
+                        </div>
+                        <div v-if="chat.typing" class="msg"><div class="ma ai">🤖</div><div class="mb"><div class="mh">MSPro AI</div><div class="tp"><span></span><span></span><span></span></div></div></div>
+                    </div>
+                    <div class="ch-bar">
+                        <div v-if="!curMs?.parsed&&aMod?.type!=='party'" class="ch-warn">⚠️ Sin config. <a @click.prevent="nav.sub='upload'">Subí archivo</a> o pedime crear desde cero.</div>
+                        <div class="ch-row"><textarea class="ch-ta" v-model="chat.input" :placeholder="aMod?.chatPlaceholder||'Escribí...'" @keydown.enter.exact.prevent="send()" rows="1"></textarea>
+                        <button class="ch-send" @click="send()" :disabled="!chat.input.trim()||chat.typing">➤</button></div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: Party Module -->
+                <div v-if="aMod?.type==='party'" class="rp"><div class="rp-h"><h3>🎉 Party Experience</h3><button class="btn btn-g btn-xs" @click="dl">⬇️</button></div>
+                    <div class="rp-b" style="padding:8px">
+                        <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px">⚔️ GENERAL</div>
+                        <div v-for="(v,i) in curMs.partyConfig?.general||[]" :key="'g'+i" style="display:flex;align-items:center;gap:6px;padding:2px 0;border-bottom:1px solid var(--border)">
+                            <span style="font-size:10px;color:var(--text-3);min-width:18px">{{i+1}}p</span>
+                            <div style="flex:1;height:4px;background:var(--bg-1);border-radius:2px;overflow:hidden"><div :style="{width:Math.min(v/15,100)+'%',height:'100%',background:'#f59e0b',borderRadius:'2px'}"></div></div>
+                            <input type="number" :value="v" @change="curMs.partyConfig.general[i]=+$event.target.value" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:var(--accent);font-size:11px;width:55px;text-align:center;padding:2px">
+                            <span style="font-size:9px;color:var(--text-3)">%</span>
+                        </div>
+                        <div style="font-size:10px;font-weight:700;color:#a78bfa;margin:10px 0 6px">⭐ SPECIAL</div>
+                        <div v-for="(v,i) in curMs.partyConfig?.special||[]" :key="'s'+i" style="display:flex;align-items:center;gap:6px;padding:2px 0;border-bottom:1px solid var(--border)">
+                            <span style="font-size:10px;color:var(--text-3);min-width:18px">{{i+1}}p</span>
+                            <div style="flex:1;height:4px;background:var(--bg-1);border-radius:2px;overflow:hidden"><div :style="{width:Math.min(v/15,100)+'%',height:'100%',background:'#a78bfa',borderRadius:'2px'}"></div></div>
+                            <input type="number" :value="v" @change="curMs.partyConfig.special[i]=+$event.target.value" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:#a78bfa;font-size:11px;width:55px;text-align:center;padding:2px">
+                            <span style="font-size:9px;color:var(--text-3)">%</span>
+                        </div>
+                        <div style="margin-top:8px;font-size:9px;color:var(--text-3);line-height:1.4">💡 Special: DW+DK+ELF, MG+DL+SU, DL+SU+RF</div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: Reset System -->
+                <div v-if="curMs?.parsed&&aMod?.type!=='party'" class="rp"><div class="rp-h"><h3>📋 {{aMod?.filename}}</h3><button class="btn btn-g btn-xs" @click="dl">⬇️</button></div>
+                    <div class="rp-b">
+                        <div v-for="r in curMs.summary.resets" :key="r.index" class="cc">
+                            <div class="cc-h" @click="r._p=!r._p"><div style="display:flex;align-items:center;gap:5px">
+                                <span class="badge" :class="r.type==='Reset'?'b-o':'b-p'" style="font-size:9px">{{r.type==='Reset'?'R':'MR'}}</span>
+                                <span style="font-size:11px">#{{r.index}} {{r.range}}</span></div><span style="font-size:9px">{{r._p?'▾':'▸'}}</span></div>
+                            <div v-if="r._p" class="cc-b">
+                                <div class="cr"><span class="k">Level</span><span class="v">{{r.requiredLevel}}</span></div>
+                                <div class="cr"><span class="k">Zen</span><span class="v">{{r.costs.zen.value}}</span></div>
+                                <div class="cr"><span class="k">Puntos</span><span class="v">{{r.rewards?.levelUpPoints||'-'}}</span></div>
+                            </div>
+                        </div>
+                        <div v-if="curMs.summary.percentagePoints?.length" class="cc">
+                            <div class="cc-h" @click="ui.pp=!ui.pp"><div style="display:flex;align-items:center;gap:5px"><span class="badge b-b" style="font-size:9px">%</span><span style="font-size:11px">Puntos/Clase</span></div><span style="font-size:9px">{{ui.pp?'▾':'▸'}}</span></div>
+                            <div v-if="ui.pp" class="cc-b"><div v-for="p in curMs.summary.percentagePoints" :key="p.resetIndex" style="margin-bottom:5px">
+                                <div style="font-size:10px;color:var(--text-3)">Reset #{{p.resetIndex}}</div>
+                                <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px"><span v-for="c in ['DW','DK','FE','MG','DL','SU','RF']" :key="c" class="badge" :class="p[c]==='100%'?'b-g':'b-o'" style="font-size:8px">{{c}}:{{p[c]}}</span></div></div></div>
+                        </div>
+                        <div v-if="curMs.summary.extras?.length" class="cc">
+                            <div class="cc-h" @click="ui.ex=!ui.ex"><div style="display:flex;align-items:center;gap:5px"><span class="badge b-g" style="font-size:9px">+</span><span style="font-size:11px">Extras</span></div><span style="font-size:9px">{{ui.ex?'▾':'▸'}}</span></div>
+                            <div v-if="ui.ex" class="cc-b"><div v-for="(e,i) in curMs.summary.extras" :key="i" class="cr"><span class="k">{{e.type}} {{e.range}}</span><span class="v">+{{e.addLevel}}lvl +{{e.addMasterLevel}}ML</span></div></div>
+                        </div>
+                    <div v-if="changeLog.length" class="cc" style="margin-top:12px">
+                            <div class="cc-h" style="background:rgba(249,115,22,.08)"><div style="display:flex;align-items:center;gap:5px"><span class="badge b-o" style="font-size:9px">!</span><span style="font-size:11px">Cambios ({{changeLog.length}})</span></div></div>
+                            <div class="cc-b"><div v-for="c in changeLog.slice(0,5)" :key="c.id" style="padding:3px 0;font-size:10px;color:var(--text-2);border-bottom:1px solid var(--border)">
+                                <span style="color:var(--accent)">{{c.time}}</span> {{c.desc}}</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="nav.sub==='guide'" class="guide-wrap" style="padding:20px;max-width:900px;overflow-y:auto;max-height:calc(100vh - 140px)">
+                <div style="text-align:center;margin-bottom:24px">
+                    <div style="font-size:32px;margin-bottom:8px">📖</div>
+                    <h2 style="font-size:18px;font-weight:700;color:var(--text-1)">Guía del ResetSystem.txt</h2>
+                    <p style="color:var(--text-3);font-size:13px">Cada sección del archivo explicada. Tocá para expandir.</p>
+                </div>
+
+                <div v-for="sec in guideData" :key="sec.id" class="cc" style="margin-bottom:8px">
+                    <div class="cc-h" @click="sec.open=!sec.open" style="cursor:pointer">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span class="badge" :class="sec.color" style="font-size:10px;min-width:20px;text-align:center">{{sec.id}}</span>
+                            <span style="font-size:14px">{{sec.icon}} {{sec.name}}</span>
+                        </div>
+                        <span style="font-size:10px;color:var(--text-3)">{{sec.open?'▾':'▸'}}</span>
+                    </div>
+                    <div v-if="sec.open" class="cc-b" style="padding:12px 14px">
+                        <p style="color:var(--text-2);font-size:12px;margin-bottom:10px;line-height:1.5">{{sec.desc}}</p>
+                        <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase">Campos</div>
+                        <div v-for="f in sec.fields" :key="f.name" style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px">
+                            <span style="min-width:130px;font-weight:600;color:var(--text-1)">{{f.name}}</span>
+                            <span style="color:var(--text-2);flex:1">{{f.desc}}</span>
+                        </div>
+                        <div v-if="sec.tips" style="margin-top:10px;padding:8px 10px;background:rgba(249,115,22,.06);border-radius:6px;border-left:3px solid var(--accent)">
+                            <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px">💡 Tips</div>
+                            <div v-for="(tip,i) in sec.tips" :key="i" style="font-size:11px;color:var(--text-2);padding:2px 0">• {{tip}}</div>
+                        </div>
+                        <div v-if="sec.example" style="margin-top:10px;padding:8px 10px;background:var(--bg-2);border-radius:6px;font-family:monospace;font-size:10px;color:var(--text-2);white-space:pre;overflow-x:auto">{{sec.example}}</div>
+                    </div>
+                </div>
+
+                <div class="cc" style="margin-top:16px">
+                    <div class="cc-h" style="background:rgba(96,165,250,.08)">
+                        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px">🔗</span><span style="font-size:13px;font-weight:600">Referencias entre secciones</span></div>
+                    </div>
+                    <div class="cc-b" style="padding:12px 14px;font-size:12px;color:var(--text-2);line-height:1.7">
+                        <div><strong>Section 0</strong> → usa <code>SettingIndex</code> para apuntar a <strong>Section 1</strong> (qué se resetea)</div>
+                        <div><strong>Section 0</strong> → usa <code>ItemReqIndex</code> para apuntar a <strong>Section 2</strong> (item requerido, -1 = ninguno)</div>
+                        <div><strong>Section 0</strong> → usa <code>RewardIndex</code> para apuntar a <strong>Section 3</strong> (recompensa)</div>
+                        <div><strong>Section 7</strong> → el <code>Index</code> corresponde al <code>Index</code> de Section 0</div>
+                        <div style="margin-top:8px;padding:6px 8px;background:rgba(249,115,22,.06);border-radius:4px;font-size:11px">💡 Varias entradas de Section 0 pueden compartir el mismo Setting, Item o Reward.</div>
+                    </div>
+                </div>
+
+                <div style="text-align:center;margin-top:20px">
+                    <button class="btn btn-sm btn-p" @click="nav.sub='chat'">💬 Ir al Chat IA →</button>
+                </div>
+            </div>
+
+            <div v-if="nav.sub==='preview'" class="preview-wrap" style="padding:20px;max-width:100%;overflow-y:auto;max-height:calc(100vh - 140px)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <div><h2 style="font-size:16px;font-weight:700;color:var(--text-1)">👁️ Preview del ResetSystem.txt</h2>
+                    <p style="color:var(--text-3);font-size:11px;margin-top:2px">Así queda tu archivo con la configuración actual</p></div>
+                    <div style="display:flex;gap:8px"><button class="btn btn-sm btn-o" @click="reAnalyze();genPreview()">🔄 Actualizar</button>
+                    <button class="btn btn-sm btn-p" @click="dl">⬇️ Descargar</button></div>
+                </div>
+                <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+                    <div v-for="ps in previewStats" :key="ps.label" style="background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px">
+                        <span style="color:var(--text-3)">{{ps.label}}: </span><strong style="color:var(--accent)">{{ps.value}}</strong>
+                    </div>
+                </div>
+                <pre class="preview-code" style="background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:11px;line-height:1.6;color:var(--text-2);overflow-x:auto;white-space:pre;font-family:'Fira Code',monospace;max-height:60vh;overflow-y:auto"><code>{{previewTxt||'Cargando preview...'}}</code></pre>
+            </div>
+
+            <!-- CALCULATOR TAB (Party Module) -->
+            <div v-if="nav.sub==='calc'" style="padding:20px;overflow-y:auto;max-height:calc(100vh - 140px)">
+                <div style="text-align:center;margin-bottom:16px">
+                    <div style="font-size:28px">🧮</div>
+                    <h2 style="font-size:18px;font-weight:700;color:var(--text-1)">Party EXP Calculator</h2>
+                    <p style="color:var(--text-3);font-size:11px">Calculá exactamente cuánta EXP recibe cada personaje en party</p>
+                </div>
+
+                <!-- Warning -->
+                <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--text-2);line-height:1.5">
+                    ⚠️ <strong>ATENCIÓN:</strong> El primer personaje debe ser el que mata al mob. Su nivel afecta el cálculo base de EXP para todos.<br>
+                    <span style="color:#f59e0b">El cálculo es estimativo y depende de qué tan precisos sean los valores.</span>
+                </div>
+
+                <!-- Info General -->
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+                    <div style="font-size:12px;font-weight:700;color:var(--text-1);margin-bottom:10px">📊 Info General</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px">
+                        <div class="calc-field"><label>Exp</label><input type="number" v-model.number="calc.exp"></div>
+                        <div class="calc-field"><label>Exp Mapa %</label><input type="number" v-model.number="calc.expMapa"></div>
+                        <div class="calc-field"><label>MasterExp</label><input type="number" v-model.number="calc.masterExp"></div>
+                        <div class="calc-field"><label>MasterExp Mapa %</label><input type="number" v-model.number="calc.masterExpMapa"></div>
+                        <div class="calc-field"><label>Nivel Monster</label><input type="number" v-model.number="calc.mobLevel"></div>
+                        <div style="display:flex;align-items:center;gap:8px;padding-top:16px">
+                            <div class="tog" :class="{on:calc.use1000}" @click="calc.use1000=!calc.use1000;calcParty()">
+                                <div class="tog-k"></div>
+                            </div>
+                            <span style="font-size:11px;color:var(--text-2)">Nivel 1000+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Character -->
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+                    <div style="font-size:12px;font-weight:700;color:var(--text-1);margin-bottom:10px">👤 Agregar Personaje</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+                        <div class="calc-field" style="width:75px"><label>Level</label><input type="number" v-model.number="calc.newLevel"></div>
+                        <div class="calc-field" style="width:75px"><label>Master Lv</label><input type="number" v-model.number="calc.newML"></div>
+                        <div class="calc-field" style="width:80px"><label>Es Master</label>
+                            <select v-model.number="calc.newIsMaster" style="background:var(--bg-1);border:1px solid var(--border);border-radius:4px;color:var(--text-1);padding:5px;font-size:12px;width:100%">
+                                <option :value="0">No</option><option :value="1">Sí</option>
+                            </select>
+                        </div>
+                        <div class="calc-field" style="width:70px"><label>Clase</label>
+                            <select v-model.number="calc.newClass" style="background:var(--bg-1);border:1px solid var(--border);border-radius:4px;color:var(--text-1);padding:5px;font-size:12px;width:100%">
+                                <option v-for="(c,i) in ['DW','DK','ELF','MG','DL','SU','RF']" :key="i" :value="i">{{c}}</option>
+                            </select>
+                        </div>
+                        <div class="calc-field" style="width:70px"><label>Bonus %</label><input type="number" v-model.number="calc.newBonus"></div>
+                        <button @click="addCalcMember" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:7px 16px;font-weight:700;font-size:12px;cursor:pointer;margin-bottom:0">AGREGAR</button>
+                    </div>
+                </div>
+
+                <!-- Party Stats -->
+                <div v-if="calc.members.length>0" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+                    <div style="flex:1;min-width:100px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+                        <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Jugadores</div>
+                        <div style="font-size:20px;font-weight:800;color:#60a5fa">{{calc.members.length}}</div>
+                    </div>
+                    <div style="flex:1;min-width:100px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+                        <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Party Level</div>
+                        <div style="font-size:20px;font-weight:800;color:var(--text-1)">{{calc.partyLevel}}</div>
+                    </div>
+                    <div style="flex:1;min-width:130px;border-radius:8px;padding:8px 12px" :style="{background:calc.isSpecial?'rgba(167,139,250,.15)':'rgba(249,115,22,.1)',border:calc.isSpecial?'1px solid rgba(167,139,250,.3)':'1px solid rgba(249,115,22,.2)'}">
+                        <div style="font-size:9px;text-transform:uppercase" :style="{color:calc.isSpecial?'#a78bfa':'#f59e0b'}">Party Bonus</div>
+                        <div style="font-size:20px;font-weight:800" :style="{color:calc.isSpecial?'#a78bfa':'#f59e0b'}">{{calc.isSpecial?'⭐ Special':'Normal'}}</div>
+                    </div>
+                    <div style="flex:1;min-width:100px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+                        <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Exp Party %</div>
+                        <div style="font-size:20px;font-weight:800;color:#34d399">{{calc.partyBonus}}%</div>
+                    </div>
+                </div>
+
+                <!-- Members Table -->
+                <div v-if="calc.members.length>0" style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px">
+                    <div style="overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:700px">
+                            <thead><tr style="background:var(--bg-1)">
+                                <th class="cth">#</th><th class="cth">Level</th><th class="cth">M.Level</th><th class="cth">Master?</th>
+                                <th class="cth">Bonus %</th><th class="cth">Clase</th><th class="cth" style="text-align:right">Exp / Master Exp</th><th class="cth"></th>
+                            </tr></thead>
+                            <tbody>
+                                <tr v-for="(m,i) in calc.members" :key="i" style="border-bottom:1px solid var(--border)">
+                                    <td class="ctd" style="font-weight:700;color:var(--accent)">{{i+1}}</td>
+                                    <td class="ctd">
+                                        <input type="number" :value="m.L" @change="m.L=+$event.target.value;calcParty()" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:var(--text-1);width:60px;text-align:center;padding:3px;font-size:12px">
+                                    </td>
+                                    <td class="ctd">
+                                        <input type="number" :value="m.ML" @change="m.ML=+$event.target.value;calcParty()" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:var(--text-1);width:55px;text-align:center;padding:3px;font-size:12px">
+                                    </td>
+                                    <td class="ctd">
+                                        <select :value="m.IsMaster" @change="m.IsMaster=+$event.target.value;calcParty()" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:var(--text-1);padding:3px;font-size:11px">
+                                            <option :value="0">No</option><option :value="1">Sí</option>
+                                        </select>
+                                    </td>
+                                    <td class="ctd">
+                                        <input type="number" :value="m.Bonus" @change="m.Bonus=+$event.target.value;calcParty()" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:var(--text-1);width:50px;text-align:center;padding:3px;font-size:12px">
+                                    </td>
+                                    <td class="ctd">
+                                        <select :value="m.Class" @change="m.Class=+$event.target.value;calcParty()" style="background:var(--bg-1);border:1px solid var(--border);border-radius:3px;color:var(--text-1);padding:3px;font-size:11px">
+                                            <option v-for="(c,ci) in ['DW','DK','ELF','MG','DL','SU','RF']" :key="ci" :value="ci">{{c}}</option>
+                                        </select>
+                                    </td>
+                                    <td class="ctd" style="text-align:right;font-family:monospace;font-weight:700;color:#34d399;font-size:14px">{{(m.Exp||0).toLocaleString()}}</td>
+                                    <td class="ctd" style="text-align:center"><a @click="calc.members.splice(i,1);calcParty()" style="color:#ef4444;cursor:pointer;font-size:11px">Quitar</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div v-if="calc.members.length===0" style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:40px;text-align:center">
+                    <div style="font-size:36px;margin-bottom:8px">👥</div>
+                    <div style="color:var(--text-3);font-size:13px">Agregá personajes para simular la party</div>
+                </div>
+
+                <!-- Quick Presets -->
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+                    <button @click="presetParty('special1')" class="calc-preset">⚡ DW+DK+ELF Lv400</button>
+                    <button @click="presetParty('special2')" class="calc-preset">⚡ MG+DL+SU Lv400</button>
+                    <button @click="presetParty('normal5')" class="calc-preset">⚡ 5 Jugadores Lv400</button>
+                    <button @click="calc.members=[];calcParty()" class="calc-preset" style="color:#ef4444">🗑️ Limpiar</button>
+                </div>
+
+                <!-- Info -->
+                <div style="margin-top:12px;padding:10px 14px;background:rgba(249,115,22,.06);border-radius:8px;border-left:3px solid var(--accent);font-size:10px;color:var(--text-3);line-height:1.6">
+                    💡 <strong>Exp</strong> y <strong>MasterExp</strong> son multiplicadores del servidor. <strong>Exp Mapa</strong> es el % del mapa. <strong>Nivel 1000+</strong> usa fórmula alternativa para servers con max level alto.<br>
+                    ⭐ <strong>Special Party</strong>: DW+DK+ELF, MG+DL+SU, o DL+SU+RF. Los valores en la tabla se modifican editando directamente cada celda.
+                </div>
+            </div>
+        </template>
+
+        <div v-if="nav.v==='ad'" class="adm">
+            <div class="sg"><div class="sc"><div class="sl">💰 Costo Total</div><div class="sv co">${{as.totalCostUsd?.toFixed(4)||'0.0000'}}</div></div>
+                <div class="sc"><div class="sl">💰 Costo Hoy</div><div class="sv cg">${{as.todayCostUsd?.toFixed(4)||'0.0000'}}</div></div>
+                <div class="sc"><div class="sl">💬 Chats</div><div class="sv cb">{{as.totalChats||0}}</div></div>
+                <div class="sc"><div class="sl">💵 Prom/Chat</div><div class="sv cp">${{as.avgCostPerChat?.toFixed(6)||'0'}}</div></div></div>
+            <div class="sg" style="margin-top:12px"><div class="sc"><div class="sl">📥 Tokens In</div><div class="sv" style="color:#60a5fa">{{(as.totalTokensIn||0).toLocaleString()}}</div></div>
+                <div class="sc"><div class="sl">📤 Tokens Out</div><div class="sv" style="color:#f472b6">{{(as.totalTokensOut||0).toLocaleString()}}</div></div>
+                <div class="sc"><div class="sl">🔑 Tokens Activos</div><div class="sv co">{{as.activeTokens||0}}</div></div>
+                <div class="sc"><div class="sl">📊 Uso Hoy</div><div class="sv cg">{{as.todayUsage||0}}</div></div></div>
+            <div class="cb" style="margin-top:16px"><div class="cb-h"><h3>Actividad Reciente</h3></div>
+                <table class="tbl" v-if="as.ra?.length"><thead><tr><th>Token</th><th>Acción</th><th>Tokens In/Out</th><th>Costo</th><th>Fecha</th></tr></thead>
+                <tbody><tr v-for="l in as.ra" :key="l.id"><td><span class="tk">{{l.token?.substring(0,10)}}...</span></td>
+                <td><span class="badge" :class="'b-'+({chat:'b',parse:'o',generate:'g',access:'y'}[l.action]||'y')">{{l.action}}</span></td>
+                <td style="font-size:11px"><span v-if="l.tokens_in" style="color:#60a5fa">{{(+l.tokens_in).toLocaleString()}}</span><span v-if="l.tokens_in"> / </span><span v-if="l.tokens_out" style="color:#f472b6">{{(+l.tokens_out).toLocaleString()}}</span><span v-if="!l.tokens_in&&!l.tokens_out" style="color:var(--text-3)">—</span></td>
+                <td style="font-size:11px">{{l.cost_usd&&+l.cost_usd>0?'$'+parseFloat(l.cost_usd).toFixed(4):'—'}}</td>
+                <td style="color:var(--text-3);font-size:11px">{{l.created_at}}</td></tr></tbody></table>
+                <div v-else class="emp"><div class="ei">📭</div><p>Sin actividad</p></div></div>
+        </div>
+
+        <div v-if="nav.v==='at'" class="adm">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:16px"><button class="btn btn-sm btn-p" @click="modals.tk=true">+ Nuevo Token</button></div>
+            <div class="cb"><table class="tbl"><thead><tr><th>Token</th><th>Etiqueta</th><th>Sección</th><th>Usos</th><th>Estado</th><th></th></tr></thead>
+            <tbody><tr v-for="t in tokens" :key="t.id"><td><span class="tk" @click="cpTk(t.token)">{{t.token.substring(0,16)}}...</span></td>
+            <td>{{t.label}}</td><td><span class="badge b-b">{{t.section}}</span></td><td>{{t.usage_count}}</td>
+            <td><span class="badge" :class="t.is_active?'b-g':'b-r'">{{t.is_active?'On':'Off'}}</span></td>
+            <td><button class="btn btn-g btn-xs" @click="cpTk(t.token)">📋</button><button class="btn btn-g btn-xs" style="color:var(--danger)" @click="delTk(t.id)">🗑️</button></td></tr></tbody></table>
+            <div v-if="!tokens.length" class="emp"><div class="ei">🔑</div><p>Sin tokens</p></div></div>
+        </div>
+
+        <div v-if="nav.v==='aw'" class="adm">
+            <div style="margin-bottom:16px">
+                <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">📚 Wiki Knowledge Base</h3>
+                <p style="color:var(--text-2);font-size:13px">El archivo wiki_kb.json que usa la IA para responder consultas de MSPro IA.</p>
+            </div>
+            <div v-if="wikiKb.loading" style="text-align:center;padding:40px;color:var(--text-3)">⏳ Cargando...</div>
+            <template v-else>
+                <div class="sg" style="margin-bottom:16px">
+                    <div class="sc"><div class="sl">📄 Artículos</div><div class="sv cb">{{wikiKb.stats.total_articles||'—'}}</div></div>
+                    <div class="sc"><div class="sl">🔤 Tokens est.</div><div class="sv co">{{wikiKb.stats.total_tokens_est?.toLocaleString()||'—'}}</div></div>
+                    <div class="sc"><div class="sl">⚡ Estrategia</div><div class="sv cg">{{wikiKb.stats.strategy_recommended||'—'}}</div></div>
+                    <div class="sc"><div class="sl">🕒 Generado</div><div class="sv" style="font-size:11px">{{wikiKb.stats.generated_at?.substring(0,10)||'—'}}</div></div>
+                </div>
+                <div style="border:2px dashed var(--border);border-radius:var(--r);padding:32px;text-align:center;cursor:pointer;transition:var(--tr)" @click="$refs.wikiFile.click()" :style="wikiKb.dragging?{borderColor:'var(--accent)',background:'var(--accent-glow)'}:{}">
+                    <div style="font-size:36px;margin-bottom:8px">📤</div>
+                    <div style="font-weight:600;margin-bottom:4px">Subir nuevo wiki_kb.json</div>
+                    <div style="color:var(--text-3);font-size:12px">Generalo con wiki_export.php y subilo acá</div>
+                    <input type="file" ref="wikiFile" accept=".json" style="display:none" @change="uploadWikiKb">
+                </div>
+                <div v-if="wikiKb.uploading" style="text-align:center;padding:20px;color:var(--accent)">⏳ Subiendo...</div>
+                <div v-if="wikiKb.msg" style="margin-top:12px;padding:12px;border-radius:var(--rs);font-size:13px" :style="{background:wikiKb.ok?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)',color:wikiKb.ok?'var(--success)':'var(--danger)'}">{{wikiKb.msg}}</div>
+                <div style="margin-top:16px;padding:14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text-2);line-height:1.8">
+                    <strong>Flujo para actualizar la wiki:</strong><br>
+                    1. Accedé a <code style="background:var(--border);padding:1px 5px;border-radius:3px">wiki.muserverpro.com/wiki_export.php?secret=miwiki2024secreto</code><br>
+                    2. Bajate el archivo <code style="background:var(--border);padding:1px 5px;border-radius:3px">wiki_kb.json</code> generado<br>
+                    3. Subilo acá y la IA usará el contenido actualizado
+                </div>
+            </template>
+        </div>
+
+        <div v-if="nav.v==='ar'" class="adm">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <p style="color:var(--text-2);font-size:13px">Instrucciones obligatorias para la IA.</p>
+                <button class="btn btn-sm btn-p" @click="modals.rl=true">+ Nueva Regla</button></div>
+            <div v-for="r in rules" :key="r.id" class="rc"><span style="font-size:15px">📌</span>
+                <div style="flex:1"><div class="rt">{{r.rule_value}}</div><span class="badge b-b" style="font-size:9px">{{r.section}}</span></div>
+                <button class="btn btn-g btn-xs" style="color:var(--danger)" @click="delRl(r.id)">🗑️</button></div>
+            <div v-if="!rules.length" class="emp"><div class="ei">⚙️</div><p>Sin reglas. La IA opera libre.</p></div>
+            <div style="margin-top:20px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r)">
+                <h4 style="font-size:12px;margin-bottom:8px">💡 Ejemplos</h4>
+                <div style="font-size:11px;color:var(--text-2);line-height:1.8">• "Level mínimo: 300"<br>• "Zen máximo: 5.000.000"<br>• "MR requiere mínimo 200 resets"<br>• "% clase: entre 50% y 200%"</div></div>
+        </div>
+        </div>
+    </div></div>
+
+    <div v-if="modals.tk" class="mo-bg" @click.self="modals.tk=false"><div class="mo"><h3>🔑 Nuevo Token</h3>
+        <div class="fg"><label class="fl">Etiqueta</label><input class="input" v-model="nt.label" placeholder="Server Latam S17"></div>
+        <div class="fg"><label class="fl">Sección</label><input class="input" v-model="nt.section" placeholder="season17, custom, general"></div>
+        <div class="fg"><label class="fl">Expiración</label><input class="input" type="date" v-model="nt.expires"></div>
+        <div class="mo-f"><button class="btn btn-o btn-sm" @click="modals.tk=false">Cancelar</button><button class="btn btn-p btn-sm" @click="mkTk">Crear</button></div></div></div>
+
+    <div v-if="modals.rl" class="mo-bg" @click.self="modals.rl=false"><div class="mo"><h3>📌 Nueva Regla</h3>
+        <div class="fg"><label class="fl">Sección</label><input class="input" v-model="nr.section" placeholder="global, season17..."></div>
+        <div class="fg"><label class="fl">Instrucción</label><textarea class="input" v-model="nr.value" rows="3" placeholder="Ej: No permitir zen mayor a 5M"></textarea></div>
+        <div class="mo-f"><button class="btn btn-o btn-sm" @click="modals.rl=false">Cancelar</button><button class="btn btn-p btn-sm" @click="mkRl">Agregar</button></div></div></div>
+
+    <div v-if="toast.show" class="toast" :class="toast.type">{{toast.msg}}</div>
+</div>
+
+<script>
+const{createApp,ref,reactive,computed,nextTick}=Vue;
+createApp({setup(){
+const modules=ref([
+{id:'reset-system',name:'Reset System',filename:'ResetSystem.txt',icon:'🔄',tag:'RESET',color:'orange',enabled:true,
+chatWelcome:'¿Qué querés configurar del Reset System?',chatDesc:'Modifico requisitos, recompensas, settings, porcentajes, extras y más.',chatPlaceholder:'Ej: Cambiá el zen del reset 0 a 2.000.000...',
+quickActions:[{icon:'📋',label:'Ver Resumen',desc:'Config actual',prompt:'Mostrá un resumen de mi configuración actual'},{icon:'⚡',label:'Cambiar Level',desc:'Requisitos',prompt:'Quiero cambiar el nivel requerido para reset a 350'},{icon:'➕',label:'Agregar Reset',desc:'Nuevo entry',prompt:'Agregá un nuevo Master Reset que requiera 400 resets'},{icon:'📊',label:'% por Clase',desc:'Balanceo',prompt:'Quiero que DW reciba solo 50% de puntos'}]},
+{id:'bonus-party',name:'Bonus Party',filename:'PartyExperience.ini',icon:'🎉',tag:'PARTY',color:'purple',enabled:true,type:'party',
+chatWelcome:'¿Qué EXP querés que dé tu party?',chatDesc:'Decime cuánta EXP querés para 2 o 3 jugadores (normal o special) y calculo toda la escala.',chatPlaceholder:'Ej: Quiero que con 3 en party normal dé 15000 exp...',
+quickActions:[{icon:'📊',label:'Ver Config',desc:'Valores actuales',prompt:'Mostrá mi configuración actual de Party Experience'},{icon:'🧮',label:'Calcular',desc:'EXP por party',prompt:'Quiero que con 3 jugadores en party normal dé 15000 de exp base'},{icon:'⭐',label:'Special Party',desc:'Bonus especial',prompt:'Explicame cómo funciona la Special Party'},{icon:'⚡',label:'Defaults',desc:'Valores base',prompt:'Poné los valores default de Party Experience'}]},
+{id:'wiki',name:'MSPro IA',filename:'',icon:'🤖',tag:'WIKI',color:'cyan',enabled:true,type:'wiki',
+chatWelcome:'¿Qué querés saber sobre MSPro?',chatDesc:'Consultá sobre configuración, archivos, sistemas, eventos y todo lo que está en la Wiki oficial.',chatPlaceholder:'Ej: ¿Cómo configuro el Common.dat? ¿Qué hace el SpeedCheck?',
+quickActions:[{icon:'📖',label:'¿Qué es X?',desc:'Explicación',prompt:'¿Qué es y para qué sirve el archivo Common.dat?'},{icon:'🔧',label:'¿Cómo configuro?',desc:'Guía paso a paso',prompt:'¿Cómo configuro el sistema de Resets en MSPro?'},{icon:'⚡',label:'Errores comunes',desc:'Troubleshooting',prompt:'¿Cuáles son los errores más comunes al instalar MSPro?'},{icon:'📋',label:'Listar archivos',desc:'Qué hace cada uno',prompt:'Listá los archivos principales de la carpeta GameServer y qué hace cada uno'}]},
+]);
+const ms=reactive({});modules.value.forEach(m=>{ms[m.id]={file:null,raw:'',parsed:m.type==='party'||m.type==='wiki',summary:{},messages:[],
+partyConfig:m.type==='party'?{general:[100,266,321,448,610,736,805,1012,1133,1234],special:[100,286,352,534,690,788,885,1092,1214,1351]}:null}});
+
+const auth=reactive({ok:false,mode:'token',token:'',user:'',pass:'',error:'',loading:false,role:'',label:'',section:'',jwt:''});
+const nav=reactive({v:'mod',mod:'reset-system',sub:'upload'});
+const drag=ref(false);const chat=reactive({input:'',typing:false});
+const wikiKb=reactive({loading:false,uploading:false,stats:{},msg:'',ok:false,dragging:false});const chatBox=ref(null);const ui=reactive({pp:false,ex:false});const changeLog=ref([]);const panelFlash=ref(false);
+const previewTxt=ref('');
+const calc=reactive({
+// Experience Settings from Common.dat
+maxLevel:400, formula1000:0,
+expRate:[200,200,200,200],       // AddExperienceRate_AL0-3
+masterExpRate:[2000,2000,2000,2000], // AddMasterExperienceRate_AL0-3
+// Party Settings
+partyMaxMembers:10,
+// Simulation
+simMob:60, simPlayers:3, simType:'general', simCharLvl:400,
+// Calculator
+exp:1,expMapa:100,masterExp:1,masterExpMapa:100,mobLevel:1,use1000:false,
+newLevel:400,newML:0,newIsMaster:0,newClass:0,newBonus:0,
+members:[],partyLevel:0,isSpecial:false,partyBonus:100
+});
+const guideData=reactive([
+{id:'S0',name:'Requirements',icon:'⚔️',color:'b-o',open:false,
+desc:'La sección principal. Define CADA entrada de reset o master reset: quién puede usarla, qué nivel necesita, cuánto cuesta, y qué rango de resets cubre.',
+fields:[
+{name:'Index',desc:'ID único de la entrada (0, 1, 2...)'},
+{name:'Type',desc:'0 = Reset normal | 1 = Master Reset'},
+{name:'AccountLevel',desc:'-1 = TODOS | 0 = FREE | 1 = VIP1 | 2 = VIP2 | 3 = VIP3'},
+{name:'SettingIndex',desc:'Apunta a Section 1 → define qué se resetea'},
+{name:'RequiredLevelResets',desc:'Nivel requerido (Reset) o cantidad de resets (MR)'},
+{name:'RangeStart / RangeEnd',desc:'Rango de resets donde aplica. RangeEnd=0 → sin límite'},
+{name:'ZenType',desc:'-1 = no cobrar | 0 = monto fijo | 1 = monto × cant. resets'},
+{name:'ZenValue',desc:'Cantidad de zen (se multiplica si ZenType=1)'},
+{name:'ItemReqIndex',desc:'Apunta a Section 2 → item requerido (-1 = ninguno)'},
+{name:'RewardIndex',desc:'Apunta a Section 3 → recompensa por resetear'}
+],tips:['Si decís "free lvl 380, vip 350" necesitás entradas separadas: AL=0 y AL=1/2/3','RangeEnd=0 significa sin límite superior de resets','Varias entradas pueden compartir el mismo SettingIndex o RewardIndex'],
+example:'0  0  -1  0  400  0000  0000  0  0  0  1  200000  -1  0'},
+{id:'S1',name:'Settings',icon:'⚙️',color:'b-b',open:false,
+desc:'Define QUÉ se resetea cuando se usa cada entrada. Referenciada desde Section 0 con SettingIndex.',
+fields:[
+{name:'SettingIndex',desc:'ID que se referencia desde Section 0'},
+{name:'Stats',desc:'0/1 - Resetear puntos de stats'},
+{name:'CommandDL',desc:'0/1 - Resetear comando /DL'},
+{name:'LevelUpPoints',desc:'0/1 - Resetear puntos de level up'},
+{name:'Inventory',desc:'0 = No limpiar | 1 = Solo inventario | 2 = Inv + Equipados'},
+{name:'Skills',desc:'0/1 - Resetear skills'},
+{name:'Quests',desc:'0/1 - Resetear quests'},
+{name:'SkillTree',desc:'0/1 - Resetear skill tree'},
+{name:'GoblinPoints',desc:'0/1 - Resetear goblin points'},
+{name:'ToBaseMap',desc:'0/1 - Teletransportar al mapa base'}
+],tips:['Lo más común: Stats=1, LevelUpPoints=1, ToBaseMap=1, el resto 0','Inventory=2 es agresivo — borra equipo puesto']},
+{id:'S2',name:'Item Requirements',icon:'💎',color:'b-p',open:false,
+desc:'Items que el jugador necesita tener para poder resetear. Referenciada desde Section 0 con ItemReqIndex.',
+fields:[
+{name:'ItemReqIndex',desc:'ID referenciado desde Section 0'},
+{name:'Type',desc:'Tipo de item (0=Swords, 6=Shields, 12=Wings, 14=Misc, etc.)'},
+{name:'Index',desc:'Índice del item dentro del tipo'},
+{name:'ItemLevel',desc:'Nivel requerido del item (-1 = cualquiera)'},
+{name:'Count',desc:'Cantidad requerida'}
+],tips:['Jewel of Bless = Type 14, Index 13','Jewel of Soul = Type 14, Index 14','Jewel of Chaos = Type 12, Index 15','-1 en Level/Skill/Luck/Excellent = no importa']},
+{id:'S3',name:'Rewards',icon:'🏆',color:'b-g',open:false,
+desc:'Recompensas que recibe el jugador al resetear. Referenciada desde Section 0 con RewardIndex.',
+fields:[
+{name:'RewardIndex',desc:'ID referenciado desde Section 0'},
+{name:'PointsType',desc:'0 = Puntos fijos | 1 = Puntos × Resets | 2 = MP fijo | 3 = MP × MR'},
+{name:'LevelUpPoints',desc:'Cantidad de puntos a dar'},
+{name:'WCCoins / WPCoins',desc:'Web Coins / Web Points a dar'},
+{name:'GoblinPoints',desc:'Goblin Points a dar'},
+{name:'BagIndex',desc:'Bag de items reward (-1 = ninguno)'}
+],tips:['PointsType=1 es lo más popular: 200pts × cant. resets = reset 5 da 1000pts','Section 7 controla el % de estos puntos por clase']},
+{id:'S4',name:'Gifts',icon:'🎁',color:'b-y',open:false,
+desc:'Regalos que se dan al alcanzar cierto número de resets o master resets.',
+fields:[
+{name:'Type',desc:'0 = al alcanzar X Resets | 1 = al alcanzar X MR'},
+{name:'Count',desc:'Cantidad de resets/MR para activar el regalo'},
+{name:'AccountLevel',desc:'-1 = todos | 0-3 = específico'},
+{name:'LevelUpPoints / WCCoins / WPCoins / Zen',desc:'Recursos de regalo'}
+],tips:['Ej: al llegar a 100 resets, regalar 5000 WCCoins','Se puede dar un bag de items con BagIndex']},
+{id:'S5',name:'Limits',icon:'🚫',color:'b-r',open:false,
+desc:'Límite máximo de resets permitidos por tipo de cuenta. NO AGREGAR LÍNEAS, solo cambiar valores. DEFAULT: todo en -1 (sin límite).',
+fields:[
+{name:'Type',desc:'0 = límite de Resets | 1 = límite de MR'},
+{name:'Limit_AL0 a AL3',desc:'-1 = sin límite | N = máximo N resets. Default: -1'}
+],tips:['⚠️ DEFAULT: -1 en todo = sin límite. No tocar salvo que lo necesites','Si Limit_AL0=400 → cuentas FREE pueden hacer máx 400 resets','Tiene 2 líneas fijas: una para Reset (Type=0) y otra para MR (Type=1)']},
+{id:'S6',name:'Limit Time',icon:'⏰',color:'b-c',open:false,
+desc:'Horarios y días permitidos para resetear. NO AGREGAR LÍNEAS. DEFAULT: M=-1, D=-1, DoW=1, H=23, Min=59 (sin restricción).',
+fields:[
+{name:'Type',desc:'0 = Reset | 1 = MR'},
+{name:'StartMonth/Day',desc:'-1 = cualquier mes/día'},
+{name:'StartDoW',desc:'1=Dom, 2=Lun, 3=Mar, 4=Mié, 5=Jue, 6=Vie, 7=Sáb. Default: 1'},
+{name:'StartHour/Min',desc:'Hora y minuto. Default: 23:59'}
+],tips:['⚠️ DEFAULT: -1 -1 1 23 59 = sin restricción. No tocar salvo que lo necesites','Tiene 2 líneas fijas: una para Reset (Type=0) y otra para MR (Type=1)']},
+{id:'S7',name:'Percentage Points',icon:'📊',color:'b-b',open:false,
+desc:'Porcentaje de puntos de reward que recibe cada clase. Aplica sobre los LevelUpPoints de Section 3. POR DEFECTO todos en 100%. Solo modificar si querés balancear clases.',
+fields:[
+{name:'Index',desc:'Corresponde al Index de Section 0'},
+{name:'DW/DK/FE/MG/DL/SU/RF',desc:'% para cada clase (100 = 100%). Default: 100 en todas.'}
+],tips:['⚠️ SIEMPRE dejar en 100 a menos que quieras balancear clases específicas','DW=Dark Wizard, DK=Dark Knight, FE=Fairy Elf, MG=Magic Gladiator','DL=Dark Lord, SU=Summoner, RF=Rage Fighter','Ej: DW a 50% → recibe la mitad de puntos de reward','Debe haber una entrada por cada Index de Section 0']},
+{id:'S8',name:'Extras',icon:'✨',color:'b-g',open:false,
+desc:'Bonus adicionales por rango de resets. Se puede agregar nivel extra, ML, puntos ML, etc.',
+fields:[
+{name:'Type',desc:'0 = Reset | 1 = MR'},
+{name:'CountMin / CountMax',desc:'Rango de resets donde aplica el bonus'},
+{name:'AccountLevel',desc:'-1 = todos | 0-3 = específico'},
+{name:'AddLevel',desc:'Niveles extra de bonus'},
+{name:'AddMasterLevel',desc:'Master Levels extra'},
+{name:'AddMLPoints',desc:'ML Points extra'},
+{name:'AddResets',desc:'Resets extra de bonus'},
+{name:'ResetLevel',desc:'0/1 - Resetear nivel al aplicar'}
+],tips:['Ej: de reset 10-20, dar +5 AddLevel y +50 AddMLPoints','Útil para hacer que resets altos sean más atractivos']}
+]);
+
+function loginToken(){auth.loading=true;auth.error='';setTimeout(()=>{if(auth.token==='MSProTeam'){auth.ok=true;auth.role='user';auth.label='Usuario';auth.section='general';selMod('reset-system')}else auth.error='Contraseña incorrecta';auth.loading=false},500)}
+function loginAdmin(){auth.loading=true;auth.error='';fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:auth.user,password:auth.pass})}).then(r=>r.json()).then(d=>{
+if(d.success){auth.jwt=d.token;auth.ok=true;auth.role='admin';auth.label='Admin';auth.section='admin';nav.v='ad';loadAdm()}
+else{auth.error=d.error||'Credenciales inválidas'}auth.loading=false}).catch(()=>{auth.error='Error de conexión';auth.loading=false})}
+function logout(){auth.ok=false;auth.role='';auth.token='';auth.user='';auth.pass='';modules.value.forEach(m=>{ms[m.id]={file:null,raw:'',parsed:false,summary:{},messages:[]}})}
+
+function selMod(id){nav.v='mod';nav.mod=id;
+const mod=modules.value.find(m=>m.id===id);
+if(mod?.type==='wiki'){nav.v='mod';nav.mod=id;nav.sub='chat';return;}
+if(mod?.type==='party'){nav.sub='config'}
+else{nav.sub=ms[id]?.parsed?'chat':'upload'}}
+const aMod=computed(()=>modules.value.find(m=>m.id===nav.mod));
+const curMs=computed(()=>ms[nav.mod]);
+const curMsgs=computed(()=>ms[nav.mod]?.messages||[]);
+const hTitle=computed(()=>({ad:'📊 Dashboard',at:'🔑 Tokens',ar:'⚙️ Reglas IA'}[nav.v]||aMod.value?.name||''));
+
+function onDrop(e){drag.value=false;const f=e.dataTransfer.files[0];if(f?.name.endsWith('.txt'))ldFile(f)}
+function onFile(e){if(e.target.files[0])ldFile(e.target.files[0])}
+function ldFile(f){const s=ms[nav.mod];s.file=f;const r=new FileReader();r.onload=e=>{s.raw=e.target.result};r.readAsText(f)}
+function parse(){const s=ms[nav.mod];if(!s.raw)return;auth.loading=true;
+const fd=new FormData();fd.append('file',s.file);
+fetch('/api/parse',{method:'POST',headers:{'X-Token':auth.token},body:fd}).then(r=>r.json()).then(d=>{
+if(d.success){s.summary=d.summary||parseRS(s.raw);s.parsed=true;notify('✅ Parseado')}
+else{s.summary=parseRS(s.raw);s.parsed=true;notify('✅ Parseado (local)')}
+auth.loading=false}).catch(()=>{try{s.summary=parseRS(s.raw);s.parsed=true;notify('✅ Parseado (local)')}catch(e){notify('Error: '+e.message,'err')}auth.loading=false})}
+function blank(){const s=ms[nav.mod];s.parsed=true;s.summary={resets:[],gifts:[],limits:[],percentagePoints:[],extras:[]};s.raw='';nav.sub='chat';
+setTimeout(()=>addAI('¡Hola! Vamos a crear un **'+aMod.value?.filename+'** desde cero. Contame qué server estás armando.'),300)}
+
+function parseRS(c){const lines=c.split('\n'),secs={};let cur=null,ib=false;
+const SF={0:['Index','Type','AccountLevel','SettingIndex','RequiredLevelResets','RangeStart','RangeEnd','ReqWCCoins','ReqWPCoins','ReqGoblinPoints','ZenType','ZenValue','ItemReqIndex','RewardIndex'],
+1:['SettingIndex','Stats','CommandDL','LevelUpPoints','Inventory','Skills','Quests','SkillTree','GoblinPoints','ToBaseMap'],
+2:['ItemReqIndex','Type','Index','ItemLevel','LifeOption','Skill','Luck','Excellent','Durability','Count'],
+3:['RewardIndex','PointsType','LevelUpPoints','WCCoins','WPCoins','GoblinPoints','BagIndex'],
+4:['Type','Count','AccountLevel','BagIndex','BagCount','LevelUpPoints','WCCoins','WPCoins','GoblinPoints','Zen'],
+5:['Type','Limit_AL0','Limit_AL1','Limit_AL2','Limit_AL3'],6:['Type','StartMonth','StartDay','StartDoW','StartHour','StartMin'],
+7:['Index','DW','DK','FE','MG','DL','SU','RF'],8:['Type','CountMin','CountMax','AccountLevel','AddLevel','AddMasterLevel','AddMLPoints','AddResets','ResetLevel']};
+const AL={'-1':'ALL','0':'FREE','1':'VIP1','2':'VIP2','3':'VIP3'},ZT={'-1':'No rem','0':'Fija','1':'×Res'},
+PT={'0':'Fijo','1':'×Res','2':'MP fijo','3':'MP×MR'},IV={'0':'No','1':'Inv','2':'Inv+Eq'},
+IT={0:'Swords',1:'Axes',2:'Maces',3:'Spears',4:'Bows',5:'Staffs',6:'Shields',7:'Helms',8:'Armors',9:'Pants',10:'Gloves',11:'Boots',12:'Wings',13:'Pets',14:'Misc',15:'Scrolls'};
+for(const line of lines){const t=line.trim();if(/^\d$/.test(t)&&SF[+t]){cur=+t;ib=true;secs[cur]=[];continue}
+if(t==='end'&&ib){ib=false;cur=null;continue}if(ib&&cur!==null&&t&&!t.startsWith('//')){const v=t.split(/\s+/).filter(x=>x);if(v.length){const row={};SF[cur].forEach((f,i)=>row[f]=v[i]||'0');secs[cur].push(row)}}}
+const R={resets:[],gifts:[],limits:[],percentagePoints:[],extras:[]};
+(secs[0]||[]).forEach(row=>{const type=row.Type==='0'?'Reset':'Master Reset';
+const e={index:row.Index,title:'#'+row.Index+' - '+type+' '+row.RangeStart+'→'+row.RangeEnd,type,range:row.RangeStart+'→'+row.RangeEnd,
+accountLevel:AL[row.AccountLevel]||row.AccountLevel,requiredLevel:row.RequiredLevelResets,
+costs:{zen:{type:ZT[row.ZenType]||'?',value:(+row.ZenValue).toLocaleString()}},settings:{},rewards:null,itemReq:null,_o:false,_p:false};
+const s=(secs[1]||[]).find(r=>+r.SettingIndex===+row.SettingIndex);
+if(s)e.settings={resetStats:s.Stats==='1',resetCommandDL:s.CommandDL==='1',resetLevelUpPoints:s.LevelUpPoints==='1',clearInventory:IV[s.Inventory]||'No',resetSkills:s.Skills==='1',resetQuests:s.Quests==='1',resetSkillTree:s.SkillTree==='1',resetGoblinPoints:s.GoblinPoints==='1',warpToBase:s.ToBaseMap==='1'};
+const rw=(secs[3]||[]).find(r=>+r.RewardIndex===+row.RewardIndex);
+if(rw)e.rewards={pointsType:PT[rw.PointsType]||'?',levelUpPoints:rw.LevelUpPoints,wccoins:rw.WCCoins,wpcoins:rw.WPCoins,goblinPoints:rw.GoblinPoints,bagIndex:rw.BagIndex};
+const ii=+row.ItemReqIndex;if(ii>=0){const it=(secs[2]||[]).find(r=>+r.ItemReqIndex===ii);if(it)e.itemReq={type:IT[+it.Type]||'T'+it.Type,index:it.Index,count:it.Count}}
+R.resets.push(e)});
+R.percentagePoints=(secs[7]||[]).map(r=>({resetIndex:r.Index,DW:r.DW+'%',DK:r.DK+'%',FE:r.FE+'%',MG:r.MG+'%',DL:r.DL+'%',SU:r.SU+'%',RF:r.RF+'%'}));
+R.extras=(secs[8]||[]).map(r=>({type:r.Type==='0'?'Reset':'MR',range:r.CountMin+'→'+r.CountMax,accountLevel:AL[r.AccountLevel]||r.AccountLevel,addLevel:r.AddLevel,addMasterLevel:r.AddMasterLevel,addMLPoints:r.AddMLPoints,addResets:r.AddResets,resetLevel:r.ResetLevel==='1'?'Sí':'No'}));
+return R}
+
+function send(text){const m=text||chat.input.trim();if(!m||chat.typing)return;const s=ms[nav.mod];
+s.messages.push({role:'user',text:m,time:now()});chat.input='';chat.typing=true;scr();
+const isParty=aMod.value?.type==='party';
+const payload={message:m,history:s.messages.filter(x=>x.role).slice(-6).map(x=>({role:x.role==='ai'?'assistant':'user',content:x.text.replace(/```(?:config|party)_update[\s\S]*?```/g,'[cambios aplicados]').substring(0,500)})),module:nav.mod};
+if(isParty){payload.partyConfig=s.partyConfig||{general:[100,266,321,448,610,736,805,1012,1133,1234],special:[100,286,352,534,690,788,885,1092,1214,1351]};
+payload.serverConfig={maxLevel:calc.maxLevel,formula1000:calc.formula1000,expRate:calc.expRate,masterExpRate:calc.masterExpRate}}
+else{payload.sections=s.summary;payload.rawConfig=s.raw||''}
+fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-Token':auth.token||'MSProTeam'},
+body:JSON.stringify(payload)}).then(r=>r.json()).then(d=>{
+if(d.success){
+if(isParty&&d.updatedPartyConfig){s.partyConfig=d.updatedPartyConfig;s.parsed=true}
+if(!isParty&&d.hasUpdates&&d.updatedSummary){s.summary=d.updatedSummary;s.parsed=true}
+if(d.hasUpdates&&d.updatedTxt){s.raw=d.updatedTxt}
+const usg=d.usage||{};addAI(d.response,!!d.hasUpdates,usg);
+if(d.hasUpdates){changeLog.value.unshift({time:now(),desc:'✅ Config actualizada',id:Date.now()});panelFlash.value=true;setTimeout(()=>panelFlash.value=false,2000);
+if(isParty)notify('✅ Valores aplicados → ⚙️ Configuración');
+else notify('✅ Cambios aplicados')}}
+else{addAI('Error: '+(d.error||'No se pudo procesar'))}
+chat.typing=false;scr()}).catch(e=>{addAI('Error de conexión: '+e.message);chat.typing=false;scr()})}
+function applyUpdates(sections){const s=ms[nav.mod];if(!s.summary)return;
+Object.keys(sections).forEach(k=>{if(sections[k]&&sections[k].rows)s.summary[k]=sections[k]});
+changeLog.value.unshift({time:now(),desc:'Config actualizada por IA',id:Date.now()});
+if(changeLog.value.length>20)changeLog.value.pop();notify('🔄 Panel actualizado')}
+function parseAIChanges(text){
+const changes=[];
+const patterns=[
+{r:/(?:ZenType|zen tipo?).*?["']?(\d)["']?/i,f:m=>'ZenType → '+m[1]},
+{r:/(?:ZenValue|zen valor?).*?(\d[\d,.]+)/i,f:m=>'Zen → '+m[1]},
+{r:/(?:level|nivel).*?(\d{2,4})/i,f:m=>'Level → '+m[1]},
+{r:/(?:rango|range).*?(\d+).*?(\d+)/i,f:m=>'Rango '+m[1]+'→'+m[2]},
+];
+patterns.forEach(p=>{const m=text.match(p.r);if(m)changes.push(p.f(m))});
+return changes}
+function addAI(text,hasUpdate=false,usage={}){ms[nav.mod].messages.push({role:'ai',text,time:now(),hasUpdate,usage});
+const ch=parseAIChanges(text);
+if(ch.length||hasUpdate){ch.forEach(c=>changeLog.value.unshift({time:now(),desc:c,id:Date.now()}));
+if(!ch.length)changeLog.value.unshift({time:now(),desc:text.replace(/[\*#]/g,'').substring(0,80),id:Date.now()});
+panelFlash.value=true;setTimeout(()=>panelFlash.value=false,2000)}
+scr()}
+function scr(){nextTick(()=>{if(chatBox.value)chatBox.value.scrollTop=chatBox.value.scrollHeight})}
+function now(){return new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}
+function fmt(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`(.*?)`/g,'<code>$1</code>').replace(/\n/g,'<br>')}
+function demoR(i){const l=i.toLowerCase(),s=ms[nav.mod];
+if(l.includes('resumen')||l.includes('mostr')){if(!s.parsed||!s.summary.resets?.length)return'No hay config cargada. Subí un archivo o creemos desde cero.';
+let r='Tu config tiene **'+s.summary.resets.length+' entradas**:\n\n';s.summary.resets.forEach(x=>r+='• **'+x.title+'** — Lvl '+x.requiredLevel+' — Zen: '+x.costs.zen.value+' — '+(x.rewards?.levelUpPoints||'?')+' pts\n');return r+'\n¿Querés modificar algo?'}
+if(l.includes('zen'))return'Puedo cambiar el **Zen**. Decime:\n• ¿Valor nuevo? (ej: 2.000.000)\n• ¿Todos los resets o uno específico?\n• ¿Tipo: fija o multiplicada por resets?';
+if(l.includes('level')||l.includes('nivel'))return'Level req actual: **400**. ¿A cuánto? Recomiendo no bajar de **300**.';
+if(l.includes('master')||l.includes('agregar'))return'Para un **Master Reset** necesito:\n• **Resets requeridos** (ej: 400)\n• **Rewards** (ej: 3 MP × MR)\n• **Reset stats?**\n• **Extras?** Bonus lvl/ML?';
+if(l.includes('porcentaje')||l.includes('clase')||l.includes('dw'))return'% actuales:\n• **DW**: 50% • **Resto**: 100%\n\nDecime qué ajustar. Ej: "DW a 70%, MG a 80%"';
+if(l.includes('cero')||l.includes('crear'))return'Armemos desde cero:\n1. **Rangos de reset** (ej: 0-400)\n2. **¿Master Reset?**\n3. **Level requerido**\n4. **Zen**\n5. **¿Items?**\n6. **Reward pts**\n\nDame los datos.';
+return'Puedo:\n• **Modificar** valores (zen, level, rewards)\n• **Agregar/eliminar** entradas\n• **Ajustar** % por clase\n• **Configurar** extras, gifts, límites\n• **Crear** desde cero\n\n¿Qué necesitás?'}
+
+function reAnalyze(){const s=ms[nav.mod];if(!s.raw)return;
+try{s.summary=parseRS(s.raw);notify('🔄 Panel re-analizado')}catch(e){notify('Error: '+e.message,'err')}}
+
+function calcParty(){
+const m=calc.members,A=m.length;if(A===0){calc.partyLevel=0;calc.isSpecial=false;calc.partyBonus=100;return}
+const pc=ms['bonus-party']?.partyConfig||{general:[100,266,321,448,610,736,805,1012,1133,1234],special:[100,286,352,534,690,788,885,1092,1214,1351]};
+// PASO 1: Loop SECUENCIAL (como el original - orden importa!)
+const C=[0,0,0,0,0,0,0];let Y=0,P=0;
+for(let i=0;i<A;i++){
+let H=m[i].IsMaster?m[i].L+m[i].ML:m[i].L;
+if(H>Y)Y=H;
+P+=(Y>=H+200)?H+200:H;
+C[m[i].Class]=1;
+}
+// Special check
+const isSpec=(C[0]&&C[1]&&C[2])||(C[3]&&C[4]&&C[5])||(C[4]&&C[5]&&C[6]);
+calc.isSpecial=!!isSpec;
+// PASO 2: Party Level (Y se reasigna al promedio!)
+const avgLv=A>1?Math.floor(P/A):P;
+calc.partyLevel=avgLv;
+Y=avgLv;
+// PASO 3: Base EXP
+const ml=calc.mobLevel;
+let X=Math.floor((ml+25)*ml/3);
+if(ml+10<Y)X=Math.floor(X*(ml+10)/Y);
+if(ml>=65){if(A===1)X+=Math.floor((ml-64)*Math.floor(ml/4));
+else{const f=m[0];X+=f.IsMaster?200-Math.floor((f.L+f.ML)/5):200-Math.floor(f.L/5)}}
+X=Math.max(0,Math.floor(X));
+// PASO 4: Adjusted (+25%)
+const ae=Math.floor(X+X/4);
+const bonusArr=isSpec?pc.special:pc.general;
+const ue=bonusArr[A-1]||100;
+calc.partyBonus=ue;
+// PASO 5: Distribución (siempre usa L, NO L+ML)
+for(let i=0;i<A;i++){
+let pe=0;const mm=m[i];
+if(!mm.IsMaster){
+pe=Math.floor(ae*ue*mm.L/P/100)*calc.exp;
+pe+=Math.floor(pe*mm.Bonus/100);
+pe=Math.floor(pe*calc.expMapa/100);
+}else{
+pe=Math.floor(ae*ue*mm.L/P/100)*calc.masterExp;
+pe+=Math.floor(pe*mm.Bonus/100);
+pe=Math.floor(pe*calc.masterExpMapa/100);
+}
+mm.Exp=Math.max(0,Math.floor(pe))||0;
+}}
+
+function addCalcMember(){
+if(calc.members.length>=10)return;
+calc.members.push({L:calc.newLevel,ML:calc.newML,IsMaster:calc.newIsMaster,Class:calc.newClass,Bonus:calc.newBonus,Exp:0});
+calcParty()}
+
+function presetParty(type){
+const mk=(c,l)=>({L:l,ML:0,IsMaster:0,Class:c,Bonus:0,Exp:0});
+if(type==='special1')calc.members=[mk(0,400),mk(1,400),mk(2,400)];
+else if(type==='special2')calc.members=[mk(3,400),mk(4,400),mk(5,400)];
+else if(type==='normal5')calc.members=[mk(0,400),mk(1,400),mk(3,400),mk(4,400),mk(6,400)];
+calcParty()}
+
+function simExpSolo(mobLvl,charLvl,expMult){
+let base=Math.floor((mobLvl+25)*mobLvl/3);
+if(mobLvl+10<charLvl)base=Math.floor(base*(mobLvl+10)/charLvl);
+if(mobLvl>=65)base+=Math.floor((mobLvl-64)*Math.floor(mobLvl/4));
+base=Math.max(0,base);
+const adj=Math.floor(base+base/4);
+return adj*expMult;
+}
+
+const simTable=computed(()=>{
+const pc=ms['bonus-party']?.partyConfig;if(!pc)return[];
+const mob=calc.simMob,cl=calc.simCharLvl,er=calc.expRate[0]||200;
+const solo=simExpSolo(mob,cl,er);
+const rows=[];
+for(let i=0;i<10;i++){
+const gPct=pc.general[i]||100, sPct=pc.special[i]||100;
+const n=i+1;
+// Simulate N equal-level players
+let base=Math.floor((mob+25)*mob/3);
+if(mob+10<cl)base=Math.floor(base*(mob+10)/cl);
+if(mob>=65){if(n===1)base+=Math.floor((mob-64)*Math.floor(mob/4));
+else base+=200-Math.floor(cl/5)}
+base=Math.max(0,base);
+const adj=Math.floor(base+base/4);
+const gPerPlayer=Math.floor(adj*gPct*cl/(cl*n)/100)*er;
+const sPerPlayer=Math.floor(adj*sPct*cl/(cl*n)/100)*er;
+const gTotal=gPerPlayer*n, sTotal=sPerPlayer*n;
+rows.push({n,gPct,sPct,gPerPlayer,sPerPlayer,gTotal,sTotal,
+gVsSolo:solo>0?((gTotal/solo*100)-100).toFixed(0):0,
+sVsSolo:solo>0?((sTotal/solo*100)-100).toFixed(0):0});
+}
+return{solo,rows};
+});
+
+function genPreview(){const s=ms[nav.mod];if(!s.raw&&!s.parsed){previewTxt.value='No hay config cargada.';return}
+if(s.raw){previewTxt.value=s.raw;return}
+previewTxt.value='Preview disponible después de subir un archivo o hacer cambios por chat.'}
+const previewStats=computed(()=>{const s=ms[nav.mod];if(!s||!s.summary)return[];
+const r=s.summary;return[
+{label:'Resets',value:r.resets?.filter(x=>x.type==='Reset').length||0},
+{label:'Master Resets',value:r.resets?.filter(x=>x.type==='Master Reset').length||0},
+{label:'Settings',value:new Set(r.resets?.map(x=>x.settings?1:0)).size||0},
+{label:'% Clases',value:r.percentagePoints?.length||0},
+{label:'Extras',value:r.extras?.length||0},
+{label:'Líneas',value:s.raw?.split('\n').length||'—'}
+]});
+function dl(){const s=ms[nav.mod];
+if(aMod.value?.type==='party'){
+const pc=s.partyConfig;if(!pc){notify('No hay config','err');return}
+let txt=";==================================================\r\n; Experience Settings\r\n;==================================================\r\n";
+txt+=`CharacterMaxLevel\t\t\t= ${calc.maxLevel}\r\n`;
+txt+=`EnableFormulaLvl1000\t\t= ${calc.formula1000}\r\n\r\n`;
+for(let i=0;i<4;i++)txt+=`AddExperienceRate_AL${i} \t\t= ${calc.expRate[i]}\r\n`;
+txt+=`\r\n`;
+for(let i=0;i<4;i++)txt+=`AddMasterExperienceRate_AL${i} \t= ${calc.masterExpRate[i]}\r\n`;
+txt+=`\r\n\r\n;==================================================\r\n; Party Settings\r\n;==================================================\r\n`;
+txt+=`PartyMaxMembers\t\t\t\t= ${calc.partyMaxMembers}\r\n\r\n`;
+for(let i=0;i<10;i++){const n=i+1;const pad=n<10?' ':'';txt+=`PartyGeneralExperience${n} ${pad}\t= ${pc.general[i]}\r\n`}
+txt+=`\r\n`;
+for(let i=0;i<10;i++){const n=i+1;const pad=n<10?' ':'';txt+=`PartySpecialExperience${n}${pad}\t= ${pc.special[i]}\r\n`}
+const b=new Blob([txt],{type:'text/plain'});const a=document.createElement('a');
+a.href=URL.createObjectURL(b);a.download='Common_PartyExp.dat';a.click();notify('📥 Descargado');return}
+if(!s.raw&&!s.parsed){notify('No hay config cargada','err');return}
+notify('⏳ Generando...');
+fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Token':auth.token||'MSProTeam'},
+body:JSON.stringify({originalContent:s.raw||'',sections:s.summary,module:nav.mod})}).then(r=>r.json()).then(d=>{
+if(d.success&&d.content){const b=new Blob([d.content],{type:'text/plain'});const a=document.createElement('a');
+a.href=URL.createObjectURL(b);a.download=aMod.value?.filename||'ResetSystem.txt';a.click();notify('📥 Descargado')}
+else notify('Error generando archivo','err')
+}).catch(()=>{if(s.raw){const b=new Blob([s.raw],{type:'text/plain'});const a=document.createElement('a');
+a.href=URL.createObjectURL(b);a.download=aMod.value?.filename||'ResetSystem.txt';a.click();notify('📥 Descargado (original)')}
+else notify('Error de conexión','err')})}
+
+const as=ref({});const tokens=ref([]);const rules=ref([]);const modals=reactive({tk:false,rl:false});
+const nt=reactive({label:'',section:'general',expires:''});const nr=reactive({section:'global',value:''});
+function loadAdm(){
+const hdr={headers:{'Authorization':'Bearer '+auth.jwt}};
+fetch('/api/admin/stats',hdr).then(r=>r.json()).then(d=>{if(d.success)as.value={
+activeTokens:d.activeTokens||0,totalUsage:d.totalUsage||0,todayUsage:d.todayUsage||0,ra:d.recentActivity||[],
+totalTokensIn:d.totalTokensIn||0,totalTokensOut:d.totalTokensOut||0,totalCostUsd:d.totalCostUsd||0,
+todayTokensIn:d.todayTokensIn||0,todayTokensOut:d.todayTokensOut||0,todayCostUsd:d.todayCostUsd||0,
+totalChats:d.totalChats||0,chatCostUsd:d.chatCostUsd||0,avgCostPerChat:d.avgCostPerChat||0}
+else as.value={activeTokens:0,totalUsage:0,todayUsage:0,ra:[],totalTokensIn:0,totalTokensOut:0,totalCostUsd:0,todayCostUsd:0,totalChats:0,avgCostPerChat:0}}).catch(()=>{as.value={activeTokens:0,totalUsage:0,todayUsage:0,ra:[],totalTokensIn:0,totalTokensOut:0,totalCostUsd:0,todayCostUsd:0,totalChats:0,avgCostPerChat:0}});
+fetch('/api/admin/tokens',hdr).then(r=>r.json()).then(d=>{tokens.value=d.success?d.tokens:[]}).catch(()=>{tokens.value=[]});
+fetch('/api/admin/rules',hdr).then(r=>r.json()).then(d=>{rules.value=d.success?d.rules:[]}).catch(()=>{rules.value=[]})}
+function mkTk(){fetch('/api/admin/tokens',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+auth.jwt},
+body:JSON.stringify({label:nt.label||'Sin nombre',section:nt.section||'general',expires:nt.expires||null})}).then(r=>r.json()).then(d=>{
+if(d.success){notify('🔑 Token creado: '+d.token);loadAdm()}else notify(d.error||'Error','err')}).catch(()=>notify('Error de conexión','err'));
+modals.tk=false;nt.label='';nt.section='general';nt.expires=''}
+function delTk(id){fetch('/api/admin/tokens/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+auth.jwt}}).then(r=>r.json()).then(d=>{if(d.success){notify('Eliminado');loadAdm()}else notify(d.error||'Error','err')}).catch(()=>notify('Error','err'))}
+function cpTk(tk){navigator.clipboard?.writeText(tk);notify('📋 Copiado')}
+function mkRl(){fetch('/api/admin/rules',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+auth.jwt},body:JSON.stringify({section:nr.section||'global',rule_value:nr.value})}).then(r=>r.json()).then(d=>{if(d.success){notify('📌 Regla agregada');loadAdm()}else notify(d.error||'Error','err')}).catch(()=>notify('Error','err'));modals.rl=false;nr.section='global';nr.value=''}
+function delRl(id){fetch('/api/admin/rules/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+auth.jwt}}).then(r=>r.json()).then(d=>{if(d.success){notify('Eliminada');loadAdm()}else notify(d.error||'Error','err')}).catch(()=>notify('Error','err'))}
+
+const toast=reactive({show:false,msg:'',type:'ok'});function notify(m,t='ok'){toast.show=true;toast.msg=m;toast.type=t;setTimeout(()=>toast.show=false,2500)}
+
+function loadWikiStats(){wikiKb.loading=true;fetch('/api/admin/wiki-kb',{headers:{'Authorization':'Bearer '+auth.jwt}}).then(r=>r.json()).then(d=>{if(d.success){wikiKb.stats=d.stats}}).catch(()=>{}).finally(()=>{wikiKb.loading=false})}
+function uploadWikiKb(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{let json;try{json=JSON.parse(ev.target.result)}catch{wikiKb.msg='❌ JSON inválido';wikiKb.ok=false;return}wikiKb.uploading=true;wikiKb.msg='';fetch('/api/admin/wiki-kb',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+auth.jwt},body:JSON.stringify({kb:json})}).then(r=>r.json()).then(d=>{wikiKb.ok=d.success;wikiKb.msg=d.success?`✅ KB actualizado: ${d.articles} artículos, ~${d.tokens?.toLocaleString()} tokens`:(d.error||'Error');if(d.success)wikiKb.stats=d.stats||wikiKb.stats}).catch(()=>{wikiKb.ok=false;wikiKb.msg='❌ Error al subir'}).finally(()=>{wikiKb.uploading=false})};reader.readAsText(file);e.target.value=''}
+
+return{modules,ms,auth,nav,drag,chat,wikiKb,loadWikiStats,uploadWikiKb,chatBox,ui,changeLog,panelFlash,guideData,previewTxt,previewStats,calc,simTable,aMod,curMs,curMsgs,hTitle,reAnalyze,genPreview,calcParty,addCalcMember,presetParty,loginToken,loginAdmin,logout,selMod,onDrop,onFile,ldFile,parse,blank,send,fmt,dl,
+as,tokens,rules,modals,nt,nr,loadAdm,mkTk,delTk,cpTk,mkRl,delRl,toast,notify}}}).mount('#app');
+</script>
+</body>
+</html>
